@@ -67,7 +67,9 @@ CHIP CPU {
     And(a=isCinstruction, b=instruction[3], out=writeM);
 
     // jump conditions
-    Not(in=isNegative,out=isPositive);
+    Or(a=isNegative,b=isZero, out=isNotPositive);
+    Not(in=isNotPositive,out=isPositive);
+    // previously I did isPositive = !isNegative, stupid mistake lol
     And(a=isPositive,b=instruction[0], out=j1);
     And(a=isZero,b=instruction[1], out=j2);
     And(a=isNegative,b=instruction[2], out=j3);
@@ -79,6 +81,6 @@ CHIP CPU {
     // Instruction increment
     Not(in=reset, out=inc1);
     Not(in=jump, out=inc2);
-    Or(a=inc1, b=inc2, out=inc);
+    And(a=inc1, b=inc2, out=inc); 
 	PC(in[0..14]=registerA, load=jump, inc=inc, reset=reset , out[0..14]=pc);
 }
