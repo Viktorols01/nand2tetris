@@ -19,7 +19,7 @@ class InstructionTranslator:
         address_part = line[1:]
         if self.symbol_table.contains_symbol(address_part):
             value = self.symbol_table.get_address(address_part)
-        elif address_part.isnumeric:
+        elif address_part.isnumeric():
             value = address_part
         else:
             # add symbol and try again
@@ -28,39 +28,115 @@ class InstructionTranslator:
         return "0" + to_n_bits(value, 15)
 
     def translate_c_instruction(self, line):
-        def split_into_comp_and_dest(string):
-            spl = string.split(";")
-            if len(spl) > 1:
-                comp_part = spl[0]
-                jump_part = spl[1]
-            else:
-                comp_part = spl[0]
-                jump_part = ""
-            return comp_part, jump_part
+        equal_ind = -1
+        semicolon_ind = len(line)
 
-        spl = line.split("=")
-        if len(spl) > 1:
-            dest_part = spl[0]
-            comp_part, jump_part = split_into_comp_and_dest(spl[1])
+        if "=" in line:
+            equal_ind = line.find("=")
+            dest_part = line[0:equal_ind]
         else:
             dest_part = ""
-            comp_part, jump_part = split_into_comp_and_dest(spl[0])
+        
+        if ";" in line:
+            semicolon_ind = line.find(";")
+            jump_part = line[semicolon_ind+1:]
+        else:
+            jump_part = ""
+
+        comp_part = line[equal_ind + 1:semicolon_ind]
+        
+        if comp_part == "":
+            print(line)
+            print("d", dest_part)
+            print("c", comp_part)
+            print("j", jump_part)
+
         return "111" + self.get_a_bits(comp_part) + self.get_comp_bits(comp_part) + self.get_dest_bits(dest_part) + self.get_jump_bits(jump_part)
     
     def get_dest_bits(self, dest_part):
-        print(dest_part)
-        return "0" * 3
+        match(dest_part):
+            case "M":
+                return "001"
+            case "D":
+                return "010"
+            case "DM":
+                return "011"
+            case "A":
+                return "100"
+            case "AM":
+                return "101"
+            case "AD":
+                return "110"
+            case "ADM":
+                return "111"
+            case _:
+                return "000"
 
     def get_comp_bits(self, comp_part):
-        print(comp_part)
-        return "0" * 3
+        match(comp_part):
+            case "0":
+                return "101010"
+            case "1":
+                return "111111"
+            case "-1":
+                return "111010"
+            case "D":
+                return "001100"
+            case "A" | "M":
+                return "110000"
+            case "!D":
+                return "001101"
+            case "!A" | "!M":
+                return "110001"
+            case "-D":
+                return "001111"
+            case "-A" | "-M":
+                return "110011"
+            case "D+1":
+                return "011111"
+            case "A+1" | "M+1":
+                return "110111"
+            case "D-1":
+                return "001110"
+            case "A-1" | "M-1":
+                return "110010"
+            case "D+A" | "D+M":
+                return "000010"
+            case "D-A" | "D-M":
+                return "010011"
+            case "A-D" | "M-D":
+                return "000111"
+            case "D&A" | "D&M":
+                return "000000"
+            case "D|A" | "D|M":
+                return "010101"
+            case _:
+                return "error"
 
     def get_a_bits(self, comp_part):
-        return "0" # basically check if M is included
+        if "M" in comp_part:
+            return "1"
+        else:
+            return "0"
 
     def get_jump_bits(self, jump_part):
-        print(jump_part)
-        return "0" * 6
+        match(jump_part):
+            case "JGT":
+                return "001"
+            case "JEQ":
+                return "010"
+            case "JGE":
+                return "011"
+            case "JLT":
+                return "100"
+            case "JNE":
+                return "101"
+            case "JLE":
+                return "110"
+            case "JMP":
+                return "111"
+            case _:
+                return "000"
 
     def translate_lines(self, lines):
         translated_lines = []

@@ -10,26 +10,38 @@ class Assembler:
         symbol_table = SymbolTable()
         file = open(path, "r")
         lines = []
-        line_number = 0
+        next_instruction_address = 0
         for line in file:
-
+            line = line.strip()
             # ignore comment
             if line.startswith("//"):
                 continue
 
-            # symbol declarations
-            if line.startswith("("):
-                symbol_table.set_address(line[1:-2], line_number + 1)
+            # empty line
+            if line == "":
                 continue
 
-            lines.append(line.rstrip("\n"))
-            line_number += 1
+            # symbol declarations
+            if line.startswith("("):
+                end_ind = line.find(")")
+                symbol_table.set_address(line[1:end_ind], next_instruction_address)
+                continue
+
+            lines.append(line)
+            next_instruction_address += 1
 
         return symbol_table, lines
 
-    def translate_file(self, path, target_path):
-        symbol_table, sanitized_lines = self._get_symbol_table_and_remove_comments(path)
+    def translate_file(self, path):
+        symbol_table, sanitized_lines = self._get_symbol_table_and_remove_comments(
+            path)
         instruction_translator = InstructionTranslator(symbol_table)
-        translated_lines = instruction_translator.translate_lines(sanitized_lines)
-        return translated_lines
-        # TODO: write to file
+        translated_lines = instruction_translator.translate_lines(
+            sanitized_lines)
+        target_path = path.split(".")[0] + ".bin"
+        self.write_file(translated_lines, target_path)
+
+    def write_file(self, lines, target_path):
+        with open(target_path, "w") as f:
+            for line in lines:
+                f.write(line + "\n")
