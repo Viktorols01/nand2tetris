@@ -16,30 +16,30 @@ def _get_vm_command(line):
     line = line.strip()
 
     is_empty = line == ""
-    is_comment = lineline.startswith("//")
+    is_comment = line.startswith("//")
     if is_empty or is_comment:
         return False, None
 
     words = line.split(" ")
     match words[0]:
         case "push":
-            return True, VmCommand(line, CommandType.PUSH, words[1], words[2])
+            return True, VmCommand(line, VmCommandType.PUSH, words[1], words[2])
         case "pop":
-            return True, VmCommand(line, CommandType.POP, words[1], words[2])
+            return True, VmCommand(line, VmCommandType.POP, words[1], words[2])
         case _:
             # assume arithmetic, will cause errors if source code is wrong
-            return True, VmCommand(line, CommandType.ARITHMETIC, words[0], None)
+            return True, VmCommand(line, VmCommandType.ARITHMETIC, words[0], None)
 
 
 @dataclass
 class VmCommand:
     source: str
-    command_type: CommandType
+    command_type: VmCommandType
     arg1: str
     arg2: int
 
 
-class CommandType(Enum):
+class VmCommandType(Enum):
     ARITHMETIC = 1
     PUSH = 2
     POP = 3

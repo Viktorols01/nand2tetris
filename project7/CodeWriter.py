@@ -1,13 +1,26 @@
-import Parser.VmCommand as VmCommand
+from Parser import VmCommand, VmCommandType
+
+symbol_index = 0
+
+
+def _get_next_symbol():
+    # well I gotta use different symbols throughout the code
+    # so I'll just use a global counter
+    global symbol_index
+    symbol_index += 1
+    return f"SYMBOL{symbol_index}"
 
 
 def translate_vm_command_list(file_path, vm_command_list):
-    with open(file_path, 'r') as file:
+    with open(file_path, 'w') as file:
         for vm_command in vm_command_list:
-            self._translate_vm_command(
+            _translate_vm_command(
                 file, vm_command, file_prefix=file_path.split(".")[0])
 
-    # TODO: Add infinite loop
+        # infinite loop
+        last_symbol = _get_next_symbol()
+        for string in ["// Infinite loop time", f"({last_symbol})", f"@{last_symbol}", "0;JMP"]:
+            file.write(string + "\n")
 
 
 def _translate_vm_command(file, vm_command, file_prefix):
@@ -16,28 +29,39 @@ def _translate_vm_command(file, vm_command, file_prefix):
             file.write(string + "\n")
 
     def write_segment_address_to_d_register(segment, i):
+        i = int(i)
         match segment:
             case "constant":
-                raise "No address for constants!"
-            case "LCL" | "ARG" | "THIS" | "THAT":
-                write(f"@{segment}", "D=A", f"@{i}", "D=D+A")
+                raise Excepion("No address for constants!")
+            case "local" | "argument" | "this" | "that":
+                segment_to_address = {
+                    "local": "LCL",
+                    "argument": "ARG",
+                    "this": "THIS",
+                    "that": "THAT"
+                }
+                address = segment_to_address[segment]
+                write(f"@{address}", "A=M", "D=A", f"@{i}", "D=D+A")
             case "pointer":
                 write(f"@{i+3}", "D=A")
             case "temp":
                 write(f"@{i+5}", "D=A")
             case "static":
-                write(f"@{file_prefix}.{i}")
+                write(f"@{file_prefix}.{i}", "D=A")
             case _:
-                raise "Undefined segment!"
+                raise Exception("Undefined segment!")
 
+    # TODO: This does NOT seem to work...
     def write_segment_value_to_d_register(segment, i):
         match segment:
             case "constant":
                 write(f"@{i}", "D=A")
             case _:
                 write_segment_address_to_d_register(segment, i)
-                write("A=D", "A=M", "D=M")
+                write("A=D", "A=M", "D=M") # this line was causing errors, I had an extra "A=M"...
+                write("A=D", "D=M")
 
+    # this seems to be working
     def write_sp_to_segment(segment, i):
         # while writing this I noticed that I couldn't use D to simultaneously store the segment address and SP value.
         # if I didn't google the issue (and found someone who came to the same realization), I would've written A=A+1 i times.
@@ -47,54 +71,97 @@ def _translate_vm_command(file, vm_command, file_prefix):
         write(f"@SP", "A=M", "D=M")  # SP value stored in D
         write("@R13", "A=M", "M=D")  # store D in R13 address
 
-    def peform_arithmetic(command):
+    def perform_arithmetic(command):
+        def pop_stack_to_d_register():
+            write("@SP", "M=M-1", "A=M", "D=M")
+
+        def push_d_register_to_stack():
+            write("@SP", "A=M", "M=D")  # write result to SP
+            write("@SP", "M=M+1")  # increment SP
+
+        def perform_boolean_arithmetic(jump_type):
+            # remember: -1 is true, 0 is false
+            pop_stack_to_d_register()  # upper value is stored in D
+            write("@R13", "M=D")  # D is stored in R13
+            pop_stack_to_d_register()  # lower value is stored in D
+            write("@R13", "A=M", "D=D-A")  # subtract R13 from D
+            # if result is 0, then they are equal.
+            equal_symbol = _get_next_symbol()
+            end_symbol = _get_next_symbol()
+            # goto equal symbol if true
+            write("@R13", "A=M", "D=D-A", f"@{equal_symbol}", f"D;{jump_type}")
+            write("@0", "D=A")  # set D to 0
+            write(f"@{end_symbol}", "0;JMP")  # goto end symbol
+            write(f"({equal_symbol})")
+            write("@-1", "D=A")  # set D to -1
+            write(f"({end_symbol})")
+            push_d_register_to_stack()
+
         match command:
             case "add":
-                # plan: move values to R13 and R14, store result in R15
-                write("@SP", "M=M-1", "A=M", "D=M", "@R13", "M=D") # upper value is stored in R13
-                write("@SP", "M=M-1", "A=M", "D=M", "@R14", "M=D") # lower value is stored in R14
-                write("")
+                pop_stack_to_d_register()  # upper value is stored in D
+                write("@R13", "M=D")  # D is stored in R13
+                pop_stack_to_d_register()  # lower value is stored in D
+                write("@R13", "A=M", "D=D+A")  # add R13 to D
+                push_d_register_to_stack()
             case "sub":
-                write("")
+                pop_stack_to_d_register()  # upper value is stored in D
+                write("@R13", "M=D")  # D is stored in R13
+                pop_stack_to_d_register()  # lower value is stored in D
+                write("@R13", "A=M", "D=D-A")  # subtract R13 from D
+                push_d_register_to_stack()
             case "neg":
-                write("")
+                pop_stack_to_d_register()  # upper value is stored in D
+                write("D=-D")
+                push_stack_to_d_register()
             case "eq":
-                # remember: -1 is true, 0 is false
-                write("")
+                perform_boolean_arithmetic("JEQ")
             case "gt":
-                write("")
+                perform_boolean_arithmetic("JGT")
             case "lt":
-                write("")
+                perform_boolean_arithmetic("JLT")
             case "and":
-                write("")
+                pop_stack_to_d_register()  # upper value is stored in D
+                write("@R13", "M=D")  # D is stored in R13
+                pop_stack_to_d_register()  # lower value is stored in D
+                write("@R13", "A=M", "D=D&A")  # R13 and D
+                push_d_register_to_stack()
             case "or":
-                write("")
+                pop_stack_to_d_register()  # upper value is stored in D
+                write("@R13", "M=D")  # D is stored in R13
+                pop_stack_to_d_register()  # lower value is stored in D
+                write("@R13", "A=M", "D=D|A")  # R13 and D
+                push_d_register_to_stack()
             case "not":
-                write("")
+                pop_stack_to_d_register()  # upper value is stored in D
+                write("D=!D")
+                push_stack_to_d_register()
 
     write(f"// --- Translating {vm_command.source} ---")
     match vm_command.command_type:
-        case ARITHMETIC:
+        case VmCommandType.ARITHMETIC:
             perform_arithmetic(vm_command.arg1)
-        case PUSH:
+            return
+        case VmCommandType.PUSH:
             write_segment_value_to_d_register(vm_command.arg1, vm_command.arg2)
             write("@SP", "A=M", "M=D", "@SP", "M=M+1")
             return
-        case POP:
+        case VmCommandType.POP:
             write("@SP", "M=M-1")
             write_sp_to_segment(vm_command.arg1, vm_command.arg2)
+            write("@SP", "A=M", "M=0") # set SP to 0, not necessary, #TODO: remove this
             return
-        case LABEL:
+        case VmCommandType.LABEL:
             return
-        case GOTO:
+        case VmCommandType.GOTO:
             return
-        case IF:
+        case VmCommandType.IF:
             return
-        case FUNCTION:
+        case VmCommandType.FUNCTION:
             return
-        case RETURN:
+        case VmCommandType.RETURN:
             return
-        case CALL:
+        case VmCommandType.CALL:
             return
         case _:
             return
