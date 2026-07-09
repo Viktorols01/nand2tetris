@@ -25,7 +25,7 @@ M=M+1
 // --- Translating pop static 8 ---
 @SP
 M=M-1
-@test/StaticTest/out/StaticTest.8
+@StaticTest.8
 D=A
 @R13
 M=D
@@ -35,13 +35,10 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating pop static 3 ---
 @SP
 M=M-1
-@test/StaticTest/out/StaticTest.3
+@StaticTest.3
 D=A
 @R13
 M=D
@@ -51,13 +48,10 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating pop static 1 ---
 @SP
 M=M-1
-@test/StaticTest/out/StaticTest.1
+@StaticTest.1
 D=A
 @R13
 M=D
@@ -67,15 +61,9 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push static 3 ---
-@test/StaticTest/out/StaticTest.3
+@StaticTest.3
 D=A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP
@@ -84,11 +72,8 @@ M=D
 @SP
 M=M+1
 // --- Translating push static 1 ---
-@test/StaticTest/out/StaticTest.1
+@StaticTest.1
 D=A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP
@@ -116,11 +101,8 @@ M=D
 @SP
 M=M+1
 // --- Translating push static 8 ---
-@test/StaticTest/out/StaticTest.8
+@StaticTest.8
 D=A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP

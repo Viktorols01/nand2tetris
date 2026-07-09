@@ -19,9 +19,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push constant 3040 ---
 @3040
 D=A
@@ -43,9 +40,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push constant 32 ---
 @32
 D=A
@@ -70,9 +64,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push constant 46 ---
 @46
 D=A
@@ -97,15 +88,9 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push pointer 0 ---
 @3
 D=A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP
@@ -116,9 +101,6 @@ M=M+1
 // --- Translating push pointer 1 ---
 @4
 D=A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP
@@ -152,9 +134,6 @@ D=A
 @2
 D=D+A
 A=D
-A=M
-D=M
-A=D
 D=M
 @SP
 A=M
@@ -186,9 +165,6 @@ A=M
 D=A
 @6
 D=D+A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP

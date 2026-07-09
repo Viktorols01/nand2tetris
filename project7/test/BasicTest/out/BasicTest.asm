@@ -22,9 +22,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push constant 21 ---
 @21
 D=A
@@ -57,9 +54,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating pop argument 1 ---
 @SP
 M=M-1
@@ -76,9 +70,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push constant 36 ---
 @36
 D=A
@@ -103,9 +94,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push constant 42 ---
 @42
 D=A
@@ -138,9 +126,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating pop that 2 ---
 @SP
 M=M-1
@@ -157,9 +142,6 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push constant 510 ---
 @510
 D=A
@@ -181,18 +163,12 @@ D=M
 @R13
 A=M
 M=D
-@SP
-A=M
-M=0
 // --- Translating push local 0 ---
 @LCL
 A=M
 D=A
 @0
 D=D+A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP
@@ -206,9 +182,6 @@ A=M
 D=A
 @5
 D=D+A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP
@@ -242,9 +215,6 @@ D=A
 @1
 D=D+A
 A=D
-A=M
-D=M
-A=D
 D=M
 @SP
 A=M
@@ -277,9 +247,6 @@ D=A
 @6
 D=D+A
 A=D
-A=M
-D=M
-A=D
 D=M
 @SP
 A=M
@@ -292,9 +259,6 @@ A=M
 D=A
 @6
 D=D+A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP
@@ -343,9 +307,6 @@ M=M+1
 // --- Translating push temp 6 ---
 @11
 D=A
-A=D
-A=M
-D=M
 A=D
 D=M
 @SP

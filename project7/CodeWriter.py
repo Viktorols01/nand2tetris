@@ -15,7 +15,7 @@ def translate_vm_command_list(file_path, vm_command_list):
     with open(file_path, 'w') as file:
         for vm_command in vm_command_list:
             _translate_vm_command(
-                file, vm_command, file_prefix=file_path.split(".")[0])
+                file, vm_command, file_prefix=file_path.split(".")[0].split("/")[-1])
 
         # infinite loop
         last_symbol = _get_next_symbol()
@@ -58,7 +58,10 @@ def _translate_vm_command(file, vm_command, file_prefix):
                 write(f"@{i}", "D=A")
             case _:
                 write_segment_address_to_d_register(segment, i)
-                write("A=D", "A=M", "D=M") # this line was causing errors, I had an extra "A=M"...
+                #write("A=D", "A=M", "D=M")
+                # the above line was causing errors, I had an extra "A=M"... rip 1 hour
+                # the line above the above line caused errors again because I forgot to comment it out after adding the above comment :) rip 1 more hour
+                # embarrassing
                 write("A=D", "D=M")
 
     # this seems to be working
@@ -147,7 +150,6 @@ def _translate_vm_command(file, vm_command, file_prefix):
         case VmCommandType.POP:
             write("@SP", "M=M-1")
             write_sp_to_segment(vm_command.arg1, vm_command.arg2)
-            write("@SP", "A=M", "M=0") # set SP to 0, not necessary, #TODO: remove this
             return
         case VmCommandType.LABEL:
             return
