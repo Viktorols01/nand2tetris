@@ -84,8 +84,6 @@ def _translate_vm_command(file, vm_command, file_prefix):
             pop_stack_to_d_register()  # upper value is stored in D
             write("@R13", "M=D")  # D is stored in R13
             pop_stack_to_d_register()  # lower value is stored in D
-            write("@R13", "A=M", "D=D-A")  # subtract R13 from D
-            # if result is 0, then they are equal.
             equal_symbol = _get_next_symbol()
             end_symbol = _get_next_symbol()
             # goto equal symbol if true
@@ -93,7 +91,7 @@ def _translate_vm_command(file, vm_command, file_prefix):
             write("@0", "D=A")  # set D to 0
             write(f"@{end_symbol}", "0;JMP")  # goto end symbol
             write(f"({equal_symbol})")
-            write("@-1", "D=A")  # set D to -1
+            write(f"@0", "D=A", "D=D-1")  # set D to -1
             write(f"({end_symbol})")
             push_d_register_to_stack()
 
@@ -113,7 +111,7 @@ def _translate_vm_command(file, vm_command, file_prefix):
             case "neg":
                 pop_stack_to_d_register()  # upper value is stored in D
                 write("D=-D")
-                push_stack_to_d_register()
+                push_d_register_to_stack()
             case "eq":
                 perform_boolean_arithmetic("JEQ")
             case "gt":
@@ -135,7 +133,7 @@ def _translate_vm_command(file, vm_command, file_prefix):
             case "not":
                 pop_stack_to_d_register()  # upper value is stored in D
                 write("D=!D")
-                push_stack_to_d_register()
+                push_d_register_to_stack()
 
     write(f"// --- Translating {vm_command.source} ---")
     match vm_command.command_type:

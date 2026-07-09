@@ -21,11 +21,14 @@ push constant 510
 pop temp 6
 push local 0
 push that 5
+// 10 + 42 = 52
 add
 push argument 1
+// 52 - 22
 sub
 push this 6
 push this 6
+# 6 + 6 = 12
 add
 sub
 push temp 6

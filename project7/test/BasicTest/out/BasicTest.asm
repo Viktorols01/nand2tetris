@@ -191,6 +191,9 @@ D=A
 @0
 D=D+A
 A=D
+A=M
+D=M
+A=D
 D=M
 @SP
 A=M
@@ -203,6 +206,9 @@ A=M
 D=A
 @5
 D=D+A
+A=D
+A=M
+D=M
 A=D
 D=M
 @SP
@@ -236,6 +242,9 @@ D=A
 @1
 D=D+A
 A=D
+A=M
+D=M
+A=D
 D=M
 @SP
 A=M
@@ -268,6 +277,9 @@ D=A
 @6
 D=D+A
 A=D
+A=M
+D=M
+A=D
 D=M
 @SP
 A=M
@@ -280,6 +292,9 @@ A=M
 D=A
 @6
 D=D+A
+A=D
+A=M
+D=M
 A=D
 D=M
 @SP
@@ -328,6 +343,9 @@ M=M+1
 // --- Translating push temp 6 ---
 @11
 D=A
+A=D
+A=M
+D=M
 A=D
 D=M
 @SP
