@@ -1,35 +1,82 @@
 from Parser import VmCommand, VmCommandType
 
-symbol_index = 0
 
+class CodeWriter:
+    def __init__(self, file):
+        self.file = file
+        self.wh = WriterHelper("???", "main", self._write)
 
-def _get_next_symbol():
-    # well I gotta use different symbols throughout the code
-    # so I'll just use a global counter
-    global symbol_index
-    symbol_index += 1
-    return f"SYMBOL{symbol_index}"
-
-
-def translate_vm_command_list(file_path_in, file_path_out, vm_command_list):
-    file_prefix = file_path_in.split(".")[0].split("/")[-1]
-    with open(file_path_out, 'a') as file:
-        for vm_command in vm_command_list:
-            _translate_vm_command(
-                file, vm_command, file_prefix)
-
-        # infinite loop
-        last_symbol = _get_next_symbol()
-        for string in ["// Infinite loop time", f"({last_symbol})", f"@{last_symbol}", "0;JMP"]:
-            file.write(string + "\n")
-
-
-def _translate_vm_command(file, vm_command, file_prefix):
-    def write(*string_list):
+    def _write(self, *string_list):
         for string in string_list:
-            file.write(string + "\n")
+            self.file.write(string + "\n")
 
-    def write_segment_address_to_d_register(segment, i):
+    def translate_vm_command_list(self, file_path_in, vm_command_list):
+        file_prefix = file_path_in.split(".")[0].split("/")[-1]
+        self.wh.file_prefix = file_prefix
+        for vm_command in vm_command_list:
+            self._translate_vm_command(vm_command)
+
+    def _translate_vm_command(self, vm_command):
+        def _get_symbol_from_label(label):
+            return f"{self.wh.file_prefix}.{self.wh.function_prefix}${label}"
+
+        self._write(f"// --- Translating '{vm_command.source}' ---")
+        match vm_command.command_type:
+            case VmCommandType.ARITHMETIC:
+                self.wh.perform_arithmetic(vm_command.arg1)
+                return
+            case VmCommandType.PUSH:
+                self.wh.write_segment_value_to_d_register(
+                    vm_command.arg1, vm_command.arg2)
+                self._write("@SP", "A=M", "M=D", "@SP", "M=M+1")
+                return
+            case VmCommandType.POP:
+                self._write("@SP", "M=M-1")
+                self.wh.write_sp_to_segment(vm_command.arg1, vm_command.arg2)
+                return
+            case VmCommandType.LABEL:
+                label = vm_command.arg1
+                label_symbol = _get_symbol_from_label(label)
+                self._write(f"({label_symbol})")
+                return
+            case VmCommandType.GOTO:
+                label = vm_command.arg1
+                label_symbol = _get_symbol_from_label(label)
+                self._write(f"@{label_symbol}", "0;JMP")
+                return
+            case VmCommandType.IF_GOTO:
+                label = vm_command.arg1
+                label_symbol = _get_symbol_from_label(label)
+                self.wh.pop_stack_to_d_register()
+                # if popped stack value is not 0, then jump
+                self._write(f"@{label_symbol}", "D;JNE")
+                return
+            case VmCommandType.FUNCTION:
+                return
+            case VmCommandType.RETURN:
+                return
+            case VmCommandType.CALL:
+                return
+            case _:
+                return
+        self._write("--- ---")
+        self._write("")
+
+
+class WriterHelper:
+    def __init__(self, file_prefix, function_prefix, _write):
+        self.symbol_index = 0
+        self.file_prefix = file_prefix
+        self.function_prefix = function_prefix
+        self._write = _write
+
+    def _get_next_symbol(self):
+        # well I gotta use different symbols throughout the code
+        # so I'll just use a global counter
+        self.symbol_index += 1
+        return f"SYMBOL{self.symbol_index}"
+
+    def write_segment_address_to_d_register(self, segment, i):
         i = int(i)
         match segment:
             case "constant":
@@ -42,134 +89,104 @@ def _translate_vm_command(file, vm_command, file_prefix):
                     "that": "THAT"
                 }
                 address = segment_to_address[segment]
-                write(f"@{address}", "A=M", "D=A", f"@{i}", "D=D+A")
+                self._write(f"@{address}", "A=M", "D=A", f"@{i}", "D=D+A")
             case "pointer":
-                write(f"@{i+3}", "D=A")
+                self._write(f"@{i+3}", "D=A")
             case "temp":
-                write(f"@{i+5}", "D=A")
+                self._write(f"@{i+5}", "D=A")
             case "static":
-                write(f"@{file_prefix}.{i}", "D=A")
+                self._write(f"@{file_prefix}.{i}", "D=A")
             case _:
                 raise Exception("Undefined segment!")
 
-    # TODO: This does NOT seem to work...
-    def write_segment_value_to_d_register(segment, i):
+    def write_segment_value_to_d_register(self, segment, i):
         match segment:
             case "constant":
-                write(f"@{i}", "D=A")
+                self._write(f"@{i}", "D=A")
             case _:
-                write_segment_address_to_d_register(segment, i)
-                # write("A=D", "A=M", "D=M")
+                self.write_segment_address_to_d_register(segment, i)
+                # _write("A=D", "A=M", "D=M")
                 # the above line was causing errors, I had an extra "A=M"... rip 1 hour
                 # the line above the above line caused errors again because I forgot to comment it out after adding the above comment :) rip 1 more hour
                 # embarrassing
-                write("A=D", "D=M")
+                self._write("A=D", "D=M")
 
     # this seems to be working
-    def write_sp_to_segment(segment, i):
+    def write_sp_to_segment(self, segment, i):
         # while writing this I noticed that I couldn't use D to simultaneously store the segment address and SP value.
         # if I didn't google the issue (and found someone who came to the same realization), I would've written A=A+1 i times.
         # but what I found on stackoverflow was a reminder that I have access to other registers than D...
-        write_segment_address_to_d_register(segment, i)
-        write("@R13", "M=D")  # segment address stored in R13
-        write(f"@SP", "A=M", "D=M")  # SP value stored in D
-        write("@R13", "A=M", "M=D")  # store D in R13 address
+        self.write_segment_address_to_d_register(segment, i)
+        self._write("@R13", "M=D")  # segment address stored in R13
+        self._write(f"@SP", "A=M", "D=M")  # SP value stored in D
+        self._write("@R13", "A=M", "M=D")  # store D in R13 address
 
-    def perform_arithmetic(command):
-        def pop_stack_to_d_register():
-            write("@SP", "M=M-1", "A=M", "D=M")
+    def pop_stack_to_d_register(self):
+        self._write("@SP", "M=M-1", "A=M", "D=M")
 
-        def push_d_register_to_stack():
-            write("@SP", "A=M", "M=D")  # write result to SP
-            write("@SP", "M=M+1")  # increment SP
+    def push_d_register_to_stack(self):
+        self._write("@SP", "A=M", "M=D")  # write result to SP
+        self._write("@SP", "M=M+1")  # increment SP
 
-        def perform_boolean_arithmetic(jump_type):
-            # remember: -1 is true, 0 is false
-            pop_stack_to_d_register()  # upper value is stored in D
-            write("@R13", "M=D")  # D is stored in R13
-            pop_stack_to_d_register()  # lower value is stored in D
-            equal_symbol = _get_next_symbol()
-            end_symbol = _get_next_symbol()
-            # goto equal symbol if true
-            write("@R13", "A=M", "D=D-A", f"@{equal_symbol}", f"D;{jump_type}")
-            write("@0", "D=A")  # set D to 0
-            write(f"@{end_symbol}", "0;JMP")  # goto end symbol
-            write(f"({equal_symbol})")
-            write(f"@0", "D=A", "D=D-1")  # set D to -1
-            write(f"({end_symbol})")
-            push_d_register_to_stack()
+    def _perform_boolean_arithmetic(self, jump_type):
+        # remember: -1 is true, 0 is false
+        self.pop_stack_to_d_register()  # upper value is stored in D
+        self._write("@R13", "M=D")  # D is stored in R13
+        self.pop_stack_to_d_register()  # lower value is stored in D
+        equal_symbol = self._get_next_symbol()
+        end_symbol = self._get_next_symbol()
+        # goto equal symbol if true
+        self._write("@R13", "A=M", "D=D-A",
+                    f"@{equal_symbol}", f"D;{jump_type}")
+        self._write("@0", "D=A")  # set D to 0
+        self._write(f"@{end_symbol}", "0;JMP")  # goto end symbol
+        self._write(f"({equal_symbol})")
+        self._write(f"@0", "D=A", "D=D-1")  # set D to -1
+        self._write(f"({end_symbol})")
+        self.push_d_register_to_stack()
 
+    def perform_arithmetic(self, command):
         match command:
             case "add":
-                pop_stack_to_d_register()  # upper value is stored in D
-                write("@R13", "M=D")  # D is stored in R13
-                pop_stack_to_d_register()  # lower value is stored in D
-                write("@R13", "A=M", "D=D+A")  # add R13 to D
-                push_d_register_to_stack()
+                self.pop_stack_to_d_register()  # upper value is stored in D
+                self._write("@R13", "M=D")  # D is stored in R13
+                self.pop_stack_to_d_register()  # lower value is stored in D
+                self._write("@R13", "A=M", "D=D+A")  # add R13 to D
+                self.push_d_register_to_stack()
             case "sub":
-                pop_stack_to_d_register()  # upper value is stored in D
-                write("@R13", "M=D")  # D is stored in R13
-                pop_stack_to_d_register()  # lower value is stored in D
-                write("@R13", "A=M", "D=D-A")  # subtract R13 from D
-                push_d_register_to_stack()
+                self.pop_stack_to_d_register()  # upper value is stored in D
+                self._write("@R13", "M=D")  # D is stored in R13
+                self.pop_stack_to_d_register()  # lower value is stored in D
+                self._write("@R13", "A=M", "D=D-A")  # subtract R13 from D
+                self.push_d_register_to_stack()
             case "neg":
-                pop_stack_to_d_register()  # upper value is stored in D
-                write("D=-D")
-                push_d_register_to_stack()
+                self.pop_stack_to_d_register()  # upper value is stored in D
+                self._write("D=-D")
+                self.push_d_register_to_stack()
             case "eq":
-                perform_boolean_arithmetic("JEQ")
+                self._perform_boolean_arithmetic("JEQ")
             case "gt":
-                perform_boolean_arithmetic("JGT")
+                self._perform_boolean_arithmetic("JGT")
             case "lt":
-                perform_boolean_arithmetic("JLT")
+                self._perform_boolean_arithmetic("JLT")
             case "and":
-                pop_stack_to_d_register()  # upper value is stored in D
-                write("@R13", "M=D")  # D is stored in R13
-                pop_stack_to_d_register()  # lower value is stored in D
-                write("@R13", "A=M", "D=D&A")  # R13 and D
-                push_d_register_to_stack()
+                self.pop_stack_to_d_register()  # upper value is stored in D
+                self._write("@R13", "M=D")  # D is stored in R13
+                self.pop_stack_to_d_register()  # lower value is stored in D
+                self._write("@R13", "A=M", "D=D&A")  # R13 and D
+                self.push_d_register_to_stack()
             case "or":
-                pop_stack_to_d_register()  # upper value is stored in D
-                write("@R13", "M=D")  # D is stored in R13
-                pop_stack_to_d_register()  # lower value is stored in D
-                write("@R13", "A=M", "D=D|A")  # R13 and D
-                push_d_register_to_stack()
+                self._pop_stack_to_d_register()  # upper value is stored in D
+                self._write("@R13", "M=D")  # D is stored in R13
+                self._pop_stack_to_d_register()  # lower value is stored in D
+                self._write("@R13", "A=M", "D=D|A")  # R13 and D
+                self._push_d_register_to_stack()
             case "not":
-                pop_stack_to_d_register()  # upper value is stored in D
-                write("D=!D")
-                push_d_register_to_stack()
+                self._pop_stack_to_d_register()  # upper value is stored in D
+                self._write("D=!D")
+                self._push_d_register_to_stack()
 
-    write(f"// --- Translating {vm_command.source} ---")
-    match vm_command.command_type:
-        case VmCommandType.ARITHMETIC:
-            perform_arithmetic(vm_command.arg1)
-            return
-        case VmCommandType.PUSH:
-            write_segment_value_to_d_register(vm_command.arg1, vm_command.arg2)
-            write("@SP", "A=M", "M=D", "@SP", "M=M+1")
-            return
-        case VmCommandType.POP:
-            write("@SP", "M=M-1")
-            write_sp_to_segment(vm_command.arg1, vm_command.arg2)
-            return
-        case VmCommandType.LABEL:
-            label = vm_command.arg1
-            # TODO: make this whole module into a class to remember stuff like current function and helper write functions
-            function_prefix = "???"
-            label_symbol = f"{function_prefix}${label}"
-            write(f"({label_symbol})")
-            return
-        case VmCommandType.GOTO:
-            return
-        case VmCommandType.IF_GOTO:
-            return
-        case VmCommandType.FUNCTION:
-            return
-        case VmCommandType.RETURN:
-            return
-        case VmCommandType.CALL:
-            return
-        case _:
-            return
-    write("--- ---")
-    write("")
+    def write_infinite_loop(self):
+        last_symbol = self._get_next_symbol()
+        for string in ["// Infinite loop time", f"({last_symbol})", f"@{last_symbol}", "0;JMP"]:
+            self._write(string + "\n")
