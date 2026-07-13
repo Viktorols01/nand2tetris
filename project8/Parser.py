@@ -37,9 +37,9 @@ def _get_vm_command(line):
         case "function":
             command = VmCommand(line, VmCommandType.FUNCTION, words[1], words[2])
         case "return":
-            command = VmCommand(line, VmCommandType.FUNCTION, None, None)
+            command = VmCommand(line, VmCommandType.RETURN, None, None)
         case "call":
-            command = VmCommand(line, VmCommandType.FUNCTION, words[1], words[2])
+            command = VmCommand(line, VmCommandType.CALL, words[1], words[2])
         case _:
             # assume arithmetic, will cause errors if source code is wrong
             command = VmCommand(line, VmCommandType.ARITHMETIC, words[0], None)

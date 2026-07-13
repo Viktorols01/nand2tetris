@@ -5,6 +5,7 @@ class CodeWriter:
     def __init__(self, file):
         self.file = file
         self.wh = WriterHelper("???", "main", self._write)
+        self.return_i = 0
 
     def _write(self, *string_list):
         for string in string_list:
@@ -17,8 +18,12 @@ class CodeWriter:
             self._translate_vm_command(vm_command)
 
     def _translate_vm_command(self, vm_command):
-        def _get_symbol_from_label(label):
+        def _get_goto_symbol_from_label(label):
             return f"{self.wh.file_prefix}.{self.wh.function_prefix}${label}"
+
+        def _get_return_symbol_from_label():
+            self.return_i += 1
+            return f"{self.wh.function_prefix}$ret.{self.return_i}"
 
         self._write(f"// --- Translating '{vm_command.source}' ---")
         match vm_command.command_type:
@@ -36,26 +41,72 @@ class CodeWriter:
                 return
             case VmCommandType.LABEL:
                 label = vm_command.arg1
-                label_symbol = _get_symbol_from_label(label)
+                label_symbol = _get_goto_symbol_from_label(label)
                 self._write(f"({label_symbol})")
                 return
             case VmCommandType.GOTO:
                 label = vm_command.arg1
-                label_symbol = _get_symbol_from_label(label)
+                label_symbol = _get_goto_symbol_from_label(label)
                 self._write(f"@{label_symbol}", "0;JMP")
                 return
             case VmCommandType.IF_GOTO:
                 label = vm_command.arg1
-                label_symbol = _get_symbol_from_label(label)
+                label_symbol = _get_goto_symbol_from_label(label)
                 self.wh.pop_stack_to_d_register()
                 # if popped stack value is not 0, then jump
                 self._write(f"@{label_symbol}", "D;JNE")
                 return
             case VmCommandType.FUNCTION:
-                return
-            case VmCommandType.RETURN:
+                function_name = vm_command.arg1
+                n_vars = vm_command.arg2
+                self.wh.function_prefix = function_name
+                self._write(f"({function_name})")
+                self._write("@0", "D=A")
+                if n_vars:
+                    for i in range(int(n_vars)):
+                        self.wh.push_d_register_to_stack()
                 return
             case VmCommandType.CALL:
+                function_name = vm_command.arg1
+                n_args = int(vm_command.arg2)
+                return_symbol = _get_return_symbol_from_label()
+                self.wh.push_value_to_stack(f"{return_symbol}")
+                self.wh.push_value_to_stack("LCL")
+                self.wh.push_value_to_stack("ARG")
+                self.wh.push_value_to_stack("THIS")
+                self.wh.push_value_to_stack("THAT")
+                # reposition ARG
+                self._write("@SP", "A=M", "D=A") # D = RAM[SP] = RAM[0]
+                self._write("@5", "D=D-A") # D = D - 5
+                self._write(f"@{n_args}", "D=D-A") # D = D - n_args
+                self._write("@ARG", "M=D")
+                # reposition LCL
+                self._write("@SP", "A=M", "D=A") # D = RAM[SP] = RAM[0]
+                self._write("@LCL", "M=D") # ARG = RAM[SP] = RAM[0]
+                # jump to function
+                self._write(f"@{function_name}", "0;JMP")
+                # return to following instruction
+                self._write(f"({return_symbol})")
+                return
+            case VmCommandType.RETURN:
+                # frame is stored in R13
+                self._write("@LCL", "D=M", "@R13", "M=D")
+                # retAddr is stored in R14
+                self._write("@5", "A=D-A", "A=M", "D=A", "@R14", "M=D")
+                # write result of function to stack
+                self.wh.pop_stack_to_d_register()
+                # remember: top of stack before calling: (arg1, ..., argn) after calling: (result)
+                self._write("@ARG", "A=M", "M=D") # *ARG = pop()
+                def set_segment_pointer(name, rel_pos):
+                    # name = *(frame - rel_pos)
+                    self._write("@R13", "D=M", f"@{rel_pos}", "D=D-A", "A=D", "D=M", f"@{name}", "M=D")
+                self._write("@ARG", "A=M", "D=A+1", "@SP", "M=D") # SP = ARG + 1
+                set_segment_pointer("THAT", 1)
+                set_segment_pointer("THIS", 2)
+                set_segment_pointer("ARG", 3)
+                set_segment_pointer("LCL", 4)
+                # goto retAddr
+                self._write("@R14", "A=M", "0;JMP")
                 return
             case _:
                 return
@@ -124,6 +175,11 @@ class WriterHelper:
     def pop_stack_to_d_register(self):
         self._write("@SP", "M=M-1", "A=M", "D=M")
 
+    def push_value_to_stack(self, value):
+        self._write(f"@{value}", "D=A")
+        self._write("@SP", "A=M", "M=D")  # write result to SP
+        self._write("@SP", "M=M+1")  # increment SP
+
     def push_d_register_to_stack(self):
         self._write("@SP", "A=M", "M=D")  # write result to SP
         self._write("@SP", "M=M+1")  # increment SP
@@ -133,6 +189,7 @@ class WriterHelper:
         self.pop_stack_to_d_register()  # upper value is stored in D
         self._write("@R13", "M=D")  # D is stored in R13
         self.pop_stack_to_d_register()  # lower value is stored in D
+        # TODO: this can cause collisions, maybe there is a way to do it without using additional labels?
         equal_symbol = self._get_next_symbol()
         end_symbol = self._get_next_symbol()
         # goto equal symbol if true
@@ -176,15 +233,15 @@ class WriterHelper:
                 self._write("@R13", "A=M", "D=D&A")  # R13 and D
                 self.push_d_register_to_stack()
             case "or":
-                self._pop_stack_to_d_register()  # upper value is stored in D
+                self.pop_stack_to_d_register()  # upper value is stored in D
                 self._write("@R13", "M=D")  # D is stored in R13
-                self._pop_stack_to_d_register()  # lower value is stored in D
+                self.pop_stack_to_d_register()  # lower value is stored in D
                 self._write("@R13", "A=M", "D=D|A")  # R13 and D
-                self._push_d_register_to_stack()
+                self.push_d_register_to_stack()
             case "not":
-                self._pop_stack_to_d_register()  # upper value is stored in D
+                self.pop_stack_to_d_register()  # upper value is stored in D
                 self._write("D=!D")
-                self._push_d_register_to_stack()
+                self.push_d_register_to_stack()
 
     def write_infinite_loop(self):
         last_symbol = self._get_next_symbol()
