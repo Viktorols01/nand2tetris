@@ -1,0 +1,36 @@
+int SCREEN_WIDTH = 540
+int SCREEN_HEIGHT = 300
+
+class Ball {
+    int x
+    int y
+    int r
+    int dx
+    int dy
+
+    constructor new() {
+        this.x = SCREEN_WIDTH / 2
+        this.y = SCREEN_HEIGHT / 2
+        this.r = 5
+        this.dx = 1
+        this.dy = 1
+    }
+
+    method move(Platform p) {
+        if (x <= p.x + p.w && y > p.y && y < p.y + p.h) {
+            dx *= -1
+        }
+        if (x > SCREEN_WIDTH) {
+            dx *= -1
+        }
+        if (y < 0 || y > SCREEN_HEIGHT) {
+            dy *= -1
+        }
+        x += dx
+        y += dy
+    }
+
+    method render() {
+        Screen.renderBall(x, y, r)
+    }
+}

@@ -1,0 +1,27 @@
+class Platform {
+    int x
+    int y
+    int w
+    int h
+    constructor new() {
+        this.x = 20
+        this.y = 20
+        this.w = 2
+        this.h = 120
+    }
+
+    method move(down, up) {
+        if (down) {
+            y += 1
+        }
+        if (up) {
+            y -= 1     
+        }
+    }
+
+    method render() {
+        Screen.renderRect(x, y, w, h)
+    }
+
+    // inget getter/setter skit
+}
