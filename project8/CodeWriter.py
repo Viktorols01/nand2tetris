@@ -17,6 +17,13 @@ class CodeWriter:
         for vm_command in vm_command_list:
             self._translate_vm_command(vm_command)
 
+    # previous issue: this was executed twice...
+    def bootstrap(self):
+        # I forgot to write this code which wasted me an hour...
+        self._write("@256", "D=A", "@SP", "M=D")
+        bootstrap_vm_command = VmCommand("call Sys.init 0 // auto-generated bootstrap code", VmCommandType.CALL, "Sys.init", "0")
+        self._translate_vm_command(bootstrap_vm_command)
+
     def _translate_vm_command(self, vm_command):
         def _get_goto_symbol_from_label(label):
             return f"{self.wh.file_prefix}.{self.wh.function_prefix}${label}"
@@ -61,8 +68,8 @@ class CodeWriter:
                 n_vars = vm_command.arg2
                 self.wh.function_prefix = function_name
                 self._write(f"({function_name})")
-                self._write("@0", "D=A")
                 if n_vars:
+                    self._write("@0", "D=A")
                     for i in range(int(n_vars)):
                         self.wh.push_d_register_to_stack()
                 return
@@ -71,21 +78,22 @@ class CodeWriter:
                 n_args = int(vm_command.arg2)
                 return_symbol = _get_return_symbol_from_label()
                 self.wh.push_value_to_stack(f"{return_symbol}")
-                self.wh.push_value_to_stack("LCL")
-                self.wh.push_value_to_stack("ARG")
-                self.wh.push_value_to_stack("THIS")
-                self.wh.push_value_to_stack("THAT")
+                self.wh.push_pointer_value_to_stack("LCL")
+                self.wh.push_pointer_value_to_stack("ARG")
+                self.wh.push_pointer_value_to_stack("THIS")
+                self.wh.push_pointer_value_to_stack("THAT")
                 # reposition ARG
                 self._write("@SP", "A=M", "D=A") # D = RAM[SP] = RAM[0]
                 self._write("@5", "D=D-A") # D = D - 5
                 self._write(f"@{n_args}", "D=D-A") # D = D - n_args
+                # now D = SP-5-n_args
                 self._write("@ARG", "M=D")
                 # reposition LCL
                 self._write("@SP", "A=M", "D=A") # D = RAM[SP] = RAM[0]
-                self._write("@LCL", "M=D") # ARG = RAM[SP] = RAM[0]
+                self._write("@LCL", "M=D") # LCL = RAM[SP] = RAM[0]
                 # jump to function
                 self._write(f"@{function_name}", "0;JMP")
-                # return to following instruction
+                # label to return to following instruction
                 self._write(f"({return_symbol})")
                 return
             case VmCommandType.RETURN:
@@ -146,7 +154,7 @@ class WriterHelper:
             case "temp":
                 self._write(f"@{i+5}", "D=A")
             case "static":
-                self._write(f"@{file_prefix}.{i}", "D=A")
+                self._write(f"@{self.file_prefix}.{i}", "D=A")
             case _:
                 raise Exception("Undefined segment!")
 
@@ -177,6 +185,11 @@ class WriterHelper:
 
     def push_value_to_stack(self, value):
         self._write(f"@{value}", "D=A")
+        self._write("@SP", "A=M", "M=D")  # write result to SP
+        self._write("@SP", "M=M+1")  # increment SP
+
+    def push_pointer_value_to_stack(self, pointer):
+        self._write(f"@{pointer}", "D=M")
         self._write("@SP", "A=M", "M=D")  # write result to SP
         self._write("@SP", "M=M+1")  # increment SP
 
