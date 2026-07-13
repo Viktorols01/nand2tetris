@@ -1,27 +1,42 @@
 class Platform {
-    int x
-    int y
-    int w
-    int h
-    constructor new() {
-        this.x = 20
-        this.y = 20
-        this.w = 2
-        this.h = 120
+    field int x;
+    field int y;
+    field int w;
+    field int h;
+
+    constructor Platform new() {
+        let x = 20;
+        let y = 20;
+        let w = 2;
+        let h = 120;
+        return this;
     }
 
-    method move(down, up) {
+    method void move(boolean down, boolean up) {
         if (down) {
-            y += 1
+            let y = y + 1;
         }
         if (up) {
-            y -= 1     
+            let y = y - 1;
         }
+        return;
     }
 
-    method render() {
-        Screen.renderRect(x, y, w, h)
+    method void render() {
+        do Screen.drawRectangle(x, y, x+w, y+h);
+        return;
     }
 
-    // inget getter/setter skit
+    method int getX() {
+        return x;
+    }
+    method int getY() {
+        return y;
+    }
+    method int getW() {
+        return w;
+    }
+    method int getH() {
+        return h;
+    }
 }

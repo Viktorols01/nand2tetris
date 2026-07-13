@@ -1,36 +1,49 @@
-int SCREEN_WIDTH = 540
-int SCREEN_HEIGHT = 300
 
 class Ball {
-    int x
-    int y
-    int r
-    int dx
-    int dy
+    field int x;
+    field int y;
+    field int dx;
+    field int dy;
+    field int r;
 
-    constructor new() {
-        this.x = SCREEN_WIDTH / 2
-        this.y = SCREEN_HEIGHT / 2
-        this.r = 5
-        this.dx = 1
-        this.dy = 1
+    static int SCREEN_WIDTH;
+    static int SCREEN_HEIGHT;
+    static int MARGIN;
+
+    constructor Ball new() {
+        let SCREEN_WIDTH = 512;
+        let SCREEN_HEIGHT = 256;
+        let MARGIN = 3;
+
+        let x = SCREEN_WIDTH / 2;
+        let y = SCREEN_HEIGHT / 2;
+        let dx = 1;
+        let dy = 1;
+        let r = 6;
+        return this;
     }
 
-    method move(Platform p) {
-        if (x <= p.x + p.w && y > p.y && y < p.y + p.h) {
-            dx *= -1
+    method void move(Platform p) {
+        if ((x < (p.getX() + p.getW())) & (y > p.getY()) & (y < (p.getY() + p.getH()))) {
+            let dx = -1 * dx;
         }
-        if (x > SCREEN_WIDTH) {
-            dx *= -1
+        if ((x + (r*MARGIN)) > SCREEN_WIDTH) {
+            let dx = -1 * dx;
         }
-        if (y < 0 || y > SCREEN_HEIGHT) {
-            dy *= -1
+        if (((y - (r*MARGIN)) < 0) | ((y + (r*MARGIN)) > SCREEN_HEIGHT)) {
+            let dy = -1 * dy;
         }
-        x += dx
-        y += dy
+        let x = x + dx;
+        let y = y + dy;
+        return;
     }
 
-    method render() {
-        Screen.renderBall(x, y, r)
+    method void render() {
+        do Screen.drawCircle(x, y, r);
+        return;
+    }
+
+    method boolean isAlive() {
+        return x > 0;
     }
 }

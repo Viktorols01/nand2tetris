@@ -1,20 +1,31 @@
 class Main {
-    function main() {
-        
-        Platform p = Platform.new()
-        Ball b = Ball.new()
+    function void main() {
 
-        while (b.getX() > 0) {
+        var Platform p;
+        var Ball b;
+        var char key;
+        var boolean moveDown;
+        var boolean moveUp;
 
-            bool moveDown = Keyboard.isDown()
-            bool moveUp = Keyboard.isUp()
-            p.move(moveDown, moveUp)
+        let p = Platform.new();
+        let b = Ball.new();
 
-            b.move(p)
+        while (b.isAlive()) {
 
-            p.render()
+            let key = Keyboard.keyPressed();
+            let moveDown = (key = 133);
+            let moveUp = (key = 131);
 
-            b.render()
+            do p.move(moveDown, moveUp);
+
+            do b.move(p);
+
+            do Screen.clearScreen();
+            do Screen.setColor(true);
+            do p.render();
+            do b.render();
         }
+
+        return;
     }
 }
