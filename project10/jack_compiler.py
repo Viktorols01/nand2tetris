@@ -1,5 +1,6 @@
 import argparse
-import jack_tokenizer as jt
+import jack_tokenizer as jack_tokenizer
+from jack_parser import JackParser
 import os
 import shutil
 
@@ -24,13 +25,14 @@ def main():
             continue
 
         name = extract_name(file_path)
-        tokens = [token for token in jt.tokenize(file_path)]
+        tokens = [token for token in jack_tokenizer.tokenize(file_path)]
 
         output_token_xml_file(tokens, output_file_name=f"{token_dir}/{name}T.xml")
 
-        # TODO: Add parser
-        #jack_parser = JackParser()
-        #jack_parser.parse(tokens, output_file_name=f"{parse_dir}/{name}.xml")
+        parser = JackParser(tokens)
+        structure = parser.parse()
+        print(structure)
+        #output_file_name=f"{parse_dir}/{name}.xml"
 
         # TODO: Add code generation
 
@@ -47,19 +49,19 @@ def output_token_xml_file(tokens, output_file_name):
     root = ET.Element("tokens")
     for token in tokens:
         match token.token_type:
-            case jt.TokenType.IDENTIFIER:
+            case jack_tokenizer.TokenType.IDENTIFIER:
                 e = ET.SubElement(root, "identifier")
                 e.text = " "+token.identifer+" "
-            case jt.TokenType.SYMBOL:
+            case jack_tokenizer.TokenType.SYMBOL:
                 e = ET.SubElement(root, "symbol")
                 e.text = " "+token.symbol+" "
-            case jt.TokenType.KEYWORD:
+            case jack_tokenizer.TokenType.KEYWORD:
                 e = ET.SubElement(root, "keyword")
                 e.text = " "+token.keyword+" "
-            case jt.TokenType.STRING_CONSTANT:
+            case jack_tokenizer.TokenType.STRING_CONSTANT:
                 e = ET.SubElement(root, "stringConstant")
                 e.text = " "+token.str_val+" "
-            case jt.TokenType.INT_CONSTANT:
+            case jack_tokenizer.TokenType.INT_CONSTANT:
                 e = ET.SubElement(root, "integerConstant")
                 e.text = " "+str(token.int_val)+" "
     tree = ET.ElementTree(root)

@@ -126,7 +126,7 @@ def _is_whitespace(char):
 jack_symbols = list(r"{}()[].,;+-*/&|<>=~")
 
 
-@dataclass
+@dataclass(eq=True)
 class Token:
     token_type: TokenType
     keyword: Keyword
