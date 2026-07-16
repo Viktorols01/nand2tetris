@@ -10,9 +10,9 @@ test() {
 }
 
 test ArrayTest Main
-#test ExpressionLessSquare Main
-#test ExpressionLessSquare Square
-#test ExpressionLessSquare SquareGame
-#test Square Main
-#test Square Square
-#test Square SquareGame
+test ExpressionLessSquare Main
+test ExpressionLessSquare Square
+test ExpressionLessSquare SquareGame
+test Square Main
+test Square Square
+test Square SquareGame

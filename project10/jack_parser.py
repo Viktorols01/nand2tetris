@@ -33,8 +33,6 @@ class JackParser:
 
     def _consumeToken(self, token_type, *optional_assert):
         current_token = self.tokens[self.i]
-        print("expecting", token_type, "|", optional_assert)
-        print("got", current_token)
         assert current_token.token_type == token_type
         self.i += 1
         name = token_type.value
@@ -48,9 +46,12 @@ class JackParser:
             case TokenType.IDENTIFIER:
                 value = current_token.identifer
             case TokenType.INT_CONSTANT:
-                value = current_token.int_val
+                name = "integerConstant"
+                value = str(current_token.int_val)
             case TokenType.STRING_CONSTANT:
+                name = "stringConstant"
                 value = current_token.str_val
+        # print("Consumed:", name, value)
         return (name, value)
 
     def _consumeClass(self):
@@ -203,7 +204,12 @@ class JackParser:
         structure = []
         structure.append(self._consumeToken(TokenType.KEYWORD, Keyword.LET))
         structure.append(self._consumeVarName())
-        # TODO: Support array stuff
+        next_token = self.tokens[self.i]
+        assert next_token.token_type == TokenType.SYMBOL
+        if next_token.symbol == '[':
+            structure.append(self._consumeToken(TokenType.SYMBOL, "["))
+            structure.append(self._consumeExpression())
+            structure.append(self._consumeToken(TokenType.SYMBOL, "]"))
         structure.append(self._consumeToken(TokenType.SYMBOL, "="))
         structure.append(self._consumeExpression())
         structure.append(self._consumeToken(TokenType.SYMBOL, ";"))
@@ -265,7 +271,7 @@ class JackParser:
         match next_token.token_type:
             case TokenType.INT_CONSTANT:
                 structure.append(self._consumeToken(
-                    TokenType.INT_CONSTANT, next_token.int_val))
+                    TokenType.INT_CONSTANT, str(next_token.int_val)))
             case TokenType.STRING_CONSTANT:
                 structure.append(self._consumeToken(
                     TokenType.STRING_CONSTANT, next_token.str_val))
@@ -309,8 +315,10 @@ class JackParser:
                         structure.append(
                             self._consumeToken(TokenType.SYMBOL, ')'))
                     case '[':
-                        # TODO: implement array stuff
-                        raise "Not implemented"
+                        structure.append(self._consumeVarName())
+                        structure.append(self._consumeToken(TokenType.SYMBOL, "["))
+                        structure.append(self._consumeExpression())
+                        structure.append(self._consumeToken(TokenType.SYMBOL, "]"))
                     case _:
                         structure.append(self._consumeVarName())
         return (name, structure)
@@ -338,7 +346,7 @@ class JackParser:
         while True:
             next_token = self.tokens[self.i]
             if next_token.token_type == TokenType.SYMBOL and next_token.symbol in operation_symbols:
-                structure.append(self._consumeToken(TokenType.SYMBOL))
+                structure.append(self._consumeToken(TokenType.SYMBOL, *operation_symbols))
                 structure.append(self._consumeTerm())
             else:
                 break
