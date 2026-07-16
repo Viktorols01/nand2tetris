@@ -33,8 +33,8 @@ class JackParser:
 
     def _consumeToken(self, token_type, *optional_assert):
         current_token = self.tokens[self.i]
-        print("expected", token_type, ", got", current_token)
-        print("optional assert:", optional_assert)
+        print("expecting", token_type, "|", optional_assert)
+        print("got", current_token)
         assert current_token.token_type == token_type
         self.i += 1
         name = token_type.value
@@ -244,7 +244,7 @@ class JackParser:
         name = "doStatement"
         structure = []
         structure.append(self._consumeToken(TokenType.KEYWORD, Keyword.DO))
-        structure.append(self._consumeTerm())  # term includes subroutineCall!
+        structure.extend(self._consumeSubroutineCall())  # term includes subroutineCall! special case, see book
         structure.append(self._consumeToken(TokenType.SYMBOL, ";"))
         return (name, structure)
 
@@ -256,13 +256,6 @@ class JackParser:
         if not (next_token.token_type == TokenType.SYMBOL and next_token.symbol == ";"):
             structure.append(self._consumeExpression())
         structure.append(self._consumeToken(TokenType.SYMBOL, ";"))
-        return (name, structure)
-
-    def _consumeExpression(self):
-        name = "expression"
-        structure = []
-        # TODO: expand to handle several terms
-        structure.append(self._consumeTerm())
         return (name, structure)
 
     def _consumeTerm(self):
@@ -297,8 +290,7 @@ class JackParser:
 
                 match next_next_token.symbol:
                     case '.':
-                        # subroutineCall
-                        print("identified a subroutinecall")
+                        # subroutineCall using className | varName
                         structure.append(self._consumeClassNameOrVarName())
                         structure.append(
                             self._consumeToken(TokenType.SYMBOL, '.'))
@@ -309,7 +301,7 @@ class JackParser:
                         structure.append(
                             self._consumeToken(TokenType.SYMBOL, ')'))
                     case '(':
-                        # subroutineCall
+                        # subroutineCall using subroutineName
                         structure.append(self._consumeSubroutineName())
                         structure.append(
                             self._consumeToken(TokenType.SYMBOL, '('))
@@ -329,10 +321,29 @@ class JackParser:
         while True:
             next_token = self.tokens[self.i]
             # lucky for us, expressionList is always followed by ')'
-            if next_token.token_type == TokenType.SYMBOL and next_token.symbol == ")":
+            if next_token.token_type == TokenType.SYMBOL and next_token.symbol == ')':
                 break
-            # TODO: expand to several expressions
             structure.append(self._consumeExpression())
-            break
+            next_token = self.tokens[self.i]
+            if next_token.token_type == TokenType.SYMBOL and next_token.symbol == ',':
+                structure.append(self._consumeToken(TokenType.SYMBOL, ','))
 
         return (name, structure)
+
+    def _consumeExpression(self):
+        name = "expression"
+        structure = []
+        structure.append(self._consumeTerm())
+        operation_symbols = list("+-*/&|<>=")
+        while True:
+            next_token = self.tokens[self.i]
+            if next_token.token_type == TokenType.SYMBOL and next_token.symbol in operation_symbols:
+                structure.append(self._consumeToken(TokenType.SYMBOL))
+                structure.append(self._consumeTerm())
+            else:
+                break
+        return (name, structure)
+    
+    def _consumeSubroutineCall(self):
+        name, structure = self._consumeTerm()
+        return structure

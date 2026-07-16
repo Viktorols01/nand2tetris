@@ -3,6 +3,7 @@ import jack_tokenizer as jack_tokenizer
 from jack_parser import JackParser
 import os
 import shutil
+import xml.etree.ElementTree as ET
 
 
 def main():
@@ -30,9 +31,8 @@ def main():
         output_token_xml_file(tokens, output_file_name=f"{token_dir}/{name}T.xml")
 
         parser = JackParser(tokens)
-        structure = parser.parse()
-        print(structure)
-        #output_file_name=f"{parse_dir}/{name}.xml"
+        tree = parser.parse()
+        output_parse_tree_xml_file(tree, output_file_name=f"{parse_dir}/{name}.xml")
 
         # TODO: Add code generation
 
@@ -45,7 +45,6 @@ def clear_dirs(dirs):
         os.mkdir(d)
 
 def output_token_xml_file(tokens, output_file_name):
-    import xml.etree.ElementTree as ET
     root = ET.Element("tokens")
     for token in tokens:
         match token.token_type:
@@ -67,6 +66,28 @@ def output_token_xml_file(tokens, output_file_name):
     tree = ET.ElementTree(root)
     ET.indent(tree, space="  ", level=0)
     tree.write(output_file_name, encoding="UTF-8")
+
+def output_parse_tree_xml_file(tree, output_file_name):
+    # this is just the class
+    for child in tree:
+        name, value = child
+        root = ET.Element(name)
+        append_subtree(root, value)
+        tree = ET.ElementTree(root)
+        ET.indent(tree, space="  ", level=0)
+        tree.write(output_file_name, encoding="UTF-8", short_empty_elements=False)
+
+def append_subtree(parent, subtree):
+    if isinstance(subtree, str):
+        parent.text = " " + subtree + " "
+    else:
+        if len(subtree) == 0:
+            parent.text = "\n"
+        else:
+            for child in subtree:
+                name, value = child
+                element = ET.SubElement(parent, name)
+                append_subtree(element, value)
 
 if __name__ == "__main__":
     main()
