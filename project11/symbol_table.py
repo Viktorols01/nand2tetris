@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import StrEnum, auto
 
 class SymbolTable:
     def __init__(self):

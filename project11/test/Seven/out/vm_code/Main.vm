@@ -1,0 +1,7 @@
+// compiling subRoutineDec
+function Main.main 0
+// compiling subRoutineDec
+// compiling statements
+// compiling doStatement
+// compiling returnStatement
+return
