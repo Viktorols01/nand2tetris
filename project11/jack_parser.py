@@ -128,7 +128,7 @@ class JackParser:
 
     def _consumeVoidOrType(self):
         next_token = self.tokens[self.i]
-        if next_token.token_type == TokenType.KEYWORD:
+        if next_token.token_type == TokenType.KEYWORD and next_token.keyword == Keyword.VOID:
             return self._consumeToken(TokenType.KEYWORD, Keyword.VOID)
         else:
             return self._consumeType()

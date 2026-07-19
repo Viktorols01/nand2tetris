@@ -8,7 +8,7 @@ class JackWriter:
         self.subroutine_symbol_table = SymbolTable()
         self.class_symbol_table = SymbolTable()
         self.file = open(output_file_name, "w")
-        self.file_prefix = output_file_name.split("/")[-1].split(".")[0]
+        self.file_prefix = output_file_name.split("/")[-1].split(".")[0] # note: this should be the same as class prefix
         self.label_n = 0
 
         def _write(*strings):
@@ -16,6 +16,15 @@ class JackWriter:
                 print(string)
                 self.file.write(f"{string}\n")
         self._write = _write
+
+    def _get_segment(self, name):
+        if self.subroutine_symbol_table.contains_symbol(name):
+            return self.subroutine_symbol_table.get_segment(name)
+        else:
+            return self.class_symbol_table.get_segment(name)
+    
+    def _is_in_symbol_table(self, name):
+        return self.subroutine_symbol_table.contains_symbol(name) or self.class_symbol_table.contains_symbol(name)
 
     def _get_next_label(self):
         self.label_n += 1
@@ -28,7 +37,7 @@ class JackWriter:
             name, subsubtree = element
             match name:
                 case "identifier":
-                    pass  # this is the class name
+                    pass # should just be class name
                 case "classVarDec":
                     self._compileClassVarDec(subsubtree)
                 case "subroutineDec":
@@ -41,7 +50,6 @@ class JackWriter:
 
     def _compileSubroutineDec(self, tree):
         self.subroutine_symbol_table.reset()
-        self._write("// compiling subRoutineDec")
         _, subroutine_type = tree[0]  # method, function or constructor
         # TODO: find out whether this needs to be used
         _, return_type = tree[1]
@@ -87,7 +95,6 @@ class JackWriter:
         return counter
 
     def _compileSubroutineBody(self, subroutine_body):
-        self._write("// compiling subRoutineDec")
         for element in subroutine_body:
             name, value = element
             match name:
@@ -99,22 +106,19 @@ class JackWriter:
                     self._compileStatements(value)
 
     def _compileVarDec(self, tree):
-        self._write("// compiling varDec")
-        self._write("// (we're just adding stuff to the symbol table)")
         # always one variable defined
         _, var_type = tree[1]  # might be (char|int|boolean) or className
         _, identifier = tree[2]  # identifier, (identifier)
         self.subroutine_symbol_table.add_symbol(
             identifier, var_type, SymbolKind.VAR)
         i = 4
-        while i < len(parameter_list):
+        while i < len(tree):
             _, identifier = tree[i]  # identifier, (identifier)
             self.subroutine_symbol_table.add_symbol(
                 identifier, var_type, SymbolKind.VAR)
             i += 2
 
     def _compileStatements(self, tree):
-        self._write("// compiling statements")
         for statement in tree:
             statement_type, subtree = statement
             self._write(f"// compiling {statement_type}")
@@ -133,8 +137,16 @@ class JackWriter:
                     raise "Unknown statement"
 
     def _compileLetStatement(self, tree):
-        # TODO: add support for arrays
-        pass
+        if len(tree) == 5: 
+           _, identifier = tree[1] 
+           _, expression = tree[3] 
+           segment = self._get_segment(identifier)
+           self._compileExpression(expression)
+           self._write(f"pop {segment}")
+        else:
+            raise "Not implemented!"
+            # TODO: add support for arrays
+            pass
 
     def _compileIfStatement(self, tree):
         _, expression = tree[2]
@@ -169,16 +181,127 @@ class JackWriter:
 
     def _compileDoStatement(self, tree):
         tree = tree[1:-1]  # remove do and ;
+        # book says expression, I say term until I encounter problems
         self._compileTerm(tree)
+        self._write("pop temp 0")  # remove pushed value
 
     def _compileReturnStatement(self, tree):
-        # TODO: support returning expressions...
-        self._write("return")
+        if len(tree) == 2: # just a return
+            self._write("return")
+        else:
+            _, expression = tree[1]
+            self._compileExpression(expression)
+            self._write("return")
 
     def _compileExpression(self, tree):
         # ultimately should push a value onto the stack?
-        pass
+        _, first_term = tree[0]
+        self._compileTerm(first_term)
+        i = 1
+        while i < len(tree):
+            _, symbol = tree[i]
+            _, term = tree[i + 1]
+            self._compileTerm(term)
+            self._compileOperation(symbol)
+            i += 2
+
+    def _compileOperation(self, symbol):
+        symbol_to_operation = {
+            '+': "add",
+            '-': "sub",
+            '*': "call Math.multiply 2",
+            '/': "call Math.divide 2",
+            '&': "and",
+            '|': "or",
+            '<': "lt",
+            '>': "gt",
+            '=': "eq"
+        }
+        operation = symbol_to_operation[symbol]
+        self._write(operation)
 
     def _compileTerm(self, tree):
         # ultimately should push a value onto the stack?
-        pass
+        first_type, first_value = tree[0]
+        match first_type:
+            case "integerConstant":
+                self._write(f"push constant {first_value}")
+            case "stringConstant":
+                raise "Hmmmm..."
+            case "keyword":
+                match first_value:
+                    case "true":
+                        self._write(f"push constant 1")
+                        self._write(f"neg")
+                    case "false":
+                        self._write(f"push constant 0")
+                    case "null":
+                        self._write(f"push constant 0")
+                    case 'this':
+                        # TODO: verify that this is correct
+                        self._write("push pointer 0")
+            case "symbol":
+                if first_value == "(":
+                    _, expression = tree[1]
+                    self._compileExpression(expression)
+                else:
+                    # must be unary operator
+                    _, term = tree[1]
+                    self._compileTerm(term)
+                    symbol_to_operation = {
+                        '-': "neg",
+                        '~': "not"
+                    }
+                    operation = symbol_to_operation[first_value]
+                    self._write(operation)
+            case "identifier":
+                self._compileIdentifierTerm(tree)
+
+    def _compileIdentifierTerm(self, tree):
+        _, first_identifier = tree[0]
+        # varName
+        if len(tree) == 1:
+            segment = self._get_segment(first_identifier)
+            self._write(f"push {segment}")
+            return
+        
+        first_symbol = tree[1][1]
+        if first_symbol == '[':
+            raise "Not implemented" # TODO: varName[expression]
+            return
+        # subroutineCall
+        self._compileSubroutineCallTerm(tree)
+
+    def _compileSubroutineCallTerm(self, tree):
+        first_identifier = tree[0][1]
+        first_symbol = tree[1][1]
+        # subroutineName(expressionList)
+        if first_symbol == '(':
+            expression_list = tree[2][1]
+            expression_count = self._compileExpressionList(expression_list)
+            self._write(f"call {self.file_prefix}.{first_identifier} {expression_count}")
+        # (className|varName).subroutineName(expressionList)
+        if first_symbol == '.':
+            if self._is_in_symbol_table(first_identifier):
+                # calling a method on an object
+                class_name_of_var = "???" # TODO: fix this?
+                # TODO: push this?
+                self._write(f"call {class_name_of_var}.{second_identifier}") # TODO: verify that this is how to call functions
+            else:
+                # calling a static method of another class
+                second_identifier = tree[2][1]
+                expression_list = tree[4][1]
+                expression_count = self._compileExpressionList(expression_list)
+                self._write(f"call {first_identifier}.{second_identifier} {expression_count}")
+
+
+    def _compileExpressionList(self, tree):
+        # put a looot of values on the stack
+        expression_count = 0
+        i = 0
+        while i < len(tree):
+            _, expression = tree[i]
+            self._compileExpression(expression)
+            expression_count += 1
+            i += 2
+        return expression_count

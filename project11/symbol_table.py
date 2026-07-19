@@ -24,6 +24,21 @@ class SymbolTable:
         number = getattr(self, index_attr)
         setattr(self, index_attr, number + 1)
         self.table[name] = Symbol(name, symbol_type, kind, number)
+    
+    def contains_symbol(self, name):
+        return name in self.table
+    
+    def get_segment(self, name):
+        symbol = self.table[name]
+        kind_to_specifier = {
+            SymbolKind.FIELD: "this",
+            SymbolKind.STATIC: "static",
+            SymbolKind.ARG:   "argument",
+            SymbolKind.VAR:   "local",
+        }
+        specifier = kind_to_specifier[symbol.kind]
+        return f"{specifier} {symbol.number}"
+
 
 @dataclass
 class Symbol:
