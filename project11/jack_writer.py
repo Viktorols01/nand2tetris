@@ -9,6 +9,7 @@ class JackWriter:
         self.class_symbol_table = SymbolTable()
         self.file = open(output_file_name, "w")
         self.file_prefix = output_file_name.split("/")[-1].split(".")[0] # note: this should be the same as class prefix
+        self.non_method_map = {} # just to check if a function is a function and not a method
         self.label_n = 0
 
         def _write(*strings):
@@ -16,15 +17,19 @@ class JackWriter:
                 print(string)
                 self.file.write(f"{string}\n")
         self._write = _write
+    
+    def _get_symbol(self, name):
+        if self.subroutine_symbol_table.contains_symbol(name):
+            return self.subroutine_symbol_table.get_symbol(name)
+        else:
+            return self.class_symbol_table.get_symbol(name)
 
     def _get_segment(self, name):
-        if self.subroutine_symbol_table.contains_symbol(name):
-            return self.subroutine_symbol_table.get_segment(name)
-        else:
-            return self.class_symbol_table.get_segment(name)
+        symbol = self._get_symbol(name)
+        return symbol.get_segment()
     
     def _is_in_symbol_table(self, name):
-        return self.subroutine_symbol_table.contains_symbol(name) or self.class_symbol_table.contains_symbol(name)
+        return self._get_symbol(name) is not None
 
     def _get_next_label(self):
         self.label_n += 1
@@ -46,28 +51,41 @@ class JackWriter:
         self.file.close()
 
     def _compileClassVarDec(self, tree):
-        raise "Not implemented"
+        _, static_or_field = tree[0]
+        _, tha_type_babyy = tree[1]
+        _, first_name = tree[2]
+        kind = SymbolKind.STATIC if static_or_field == "static" else SymbolKind.FIELD
+        self.class_symbol_table.add_symbol(first_name, tha_type_babyy, kind)
+        i = 4
+        while i < len(tree):
+            _, name = tree[i]
+            self.class_symbol_table.add_symbol(name, tha_type_babyy, kind)
+            i += 2
 
     def _compileSubroutineDec(self, tree):
         self.subroutine_symbol_table.reset()
         _, subroutine_type = tree[0]  # method, function or constructor
-        # TODO: find out whether this needs to be used
         _, return_type = tree[1]
         _, subroutine_name = tree[2]
-        _, parameter_list = tree[4]  # TODO: handle and add to symbol table
+        _, parameter_list = tree[4]  
         _, subroutine_body = tree[6]
         function_label = f"{self.file_prefix}.{subroutine_name}"
         local_variable_count = self._countLocalVariables(subroutine_body)
-        match subroutine_type:
-            case "method":
-                local_variable_count += 1
-            case "function":
-                pass
-            case "constructor":
-                raise "Not implemented"  # TODO: implement
-            case _:
-                raise "Unknown subroutine type"
+        if subroutine_type == "method":
+            local_variable_count += 1
+            self.subroutine_symbol_table.add_symbol("this", self.file_prefix, SymbolKind.ARG)
+        else:
+            self.non_method_map[subroutine_name] = True
         self._write(f"function {function_label} {local_variable_count}")
+        if subroutine_type == "method":
+            field_variable_count = self.class_symbol_table.get_field_variable_count()
+            self._write(f"push argument 0")
+            self._write(f"pop pointer 0")
+        if subroutine_type == "constructor":
+            field_variable_count = self.class_symbol_table.get_field_variable_count()
+            self._write(f"push constant {field_variable_count}")
+            self._write(f"call Memory.alloc 1")
+            self._write(f"pop pointer 0")
         self._appendParameterListToSymbolTable(
             parameter_list, self.subroutine_symbol_table)
         self._compileSubroutineBody(subroutine_body)
@@ -238,7 +256,6 @@ class JackWriter:
                     case "null":
                         self._write(f"push constant 0")
                     case 'this':
-                        # TODO: verify that this is correct
                         self._write("push pointer 0")
             case "symbol":
                 if first_value == "(":
@@ -261,6 +278,11 @@ class JackWriter:
         _, first_identifier = tree[0]
         # varName
         if len(tree) == 1:
+            is_not_method = not self._is_in_symbol_table("this")
+            if first_identifier == "this" and is_not_method: # for "return this" in constructors
+                self._write(f"push pointer 0")
+                return
+
             segment = self._get_segment(first_identifier)
             self._write(f"push {segment}")
             return
@@ -273,24 +295,33 @@ class JackWriter:
         self._compileSubroutineCallTerm(tree)
 
     def _compileSubroutineCallTerm(self, tree):
+        self._write("// compiling subroutine call")
         first_identifier = tree[0][1]
         first_symbol = tree[1][1]
         # subroutineName(expressionList)
         if first_symbol == '(':
             expression_list = tree[2][1]
             expression_count = self._compileExpressionList(expression_list)
-            self._write(f"call {self.file_prefix}.{first_identifier} {expression_count}")
+            if first_identifier in self.non_method_map:
+                self._write(f"call {self.file_prefix}.{first_identifier} {expression_count}")
+            else:
+                self._write(f"push pointer 0")
+                self._write(f"call {self.file_prefix}.{first_identifier} {expression_count + 1}")
         # (className|varName).subroutineName(expressionList)
         if first_symbol == '.':
-            if self._is_in_symbol_table(first_identifier):
-                # calling a method on an object
-                class_name_of_var = "???" # TODO: fix this?
-                # TODO: push this?
-                self._write(f"call {class_name_of_var}.{second_identifier}") # TODO: verify that this is how to call functions
+            second_identifier = tree[2][1]
+            expression_list = tree[4][1]
+
+            symbol = self._get_symbol(first_identifier)
+            symbol_exists = symbol is not None
+            if symbol_exists:
+                # calling a method on an object with name varName
+                class_name_of_var = symbol.symbol_type
+                self._write(f"push {symbol.get_segment()}")
+                expression_count = self._compileExpressionList(expression_list)
+                self._write(f"call {class_name_of_var}.{second_identifier} {expression_count + 1}")
             else:
-                # calling a static method of another class
-                second_identifier = tree[2][1]
-                expression_list = tree[4][1]
+                # calling a static function of another class
                 expression_count = self._compileExpressionList(expression_list)
                 self._write(f"call {first_identifier}.{second_identifier} {expression_count}")
 

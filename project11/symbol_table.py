@@ -28,17 +28,16 @@ class SymbolTable:
     def contains_symbol(self, name):
         return name in self.table
     
-    def get_segment(self, name):
-        symbol = self.table[name]
-        kind_to_specifier = {
-            SymbolKind.FIELD: "this",
-            SymbolKind.STATIC: "static",
-            SymbolKind.ARG:   "argument",
-            SymbolKind.VAR:   "local",
-        }
-        specifier = kind_to_specifier[symbol.kind]
-        return f"{specifier} {symbol.number}"
-
+    def get_symbol(self, name):
+        return self.table.get(name)
+    
+    def get_field_variable_count(self):
+        counter = 0
+        for symbol_name in self.table:
+            symbol = self.table[symbol_name]
+            if symbol.kind == SymbolKind.FIELD:
+                counter += 1
+        return counter
 
 @dataclass
 class Symbol:
@@ -46,6 +45,15 @@ class Symbol:
     symbol_type: str # int, char, boolean, class
     kind: SymbolKind # field, static, arg, var
     number: int
+    def get_segment(self):
+        kind_to_specifier = {
+            SymbolKind.FIELD: "this",
+            SymbolKind.STATIC: "static",
+            SymbolKind.ARG:   "argument",
+            SymbolKind.VAR:   "local",
+        }
+        specifier = kind_to_specifier[self.kind]
+        return f"{specifier} {self.number}"
 
 class SymbolKind(StrEnum):
     FIELD = auto()

@@ -1,0 +1,226 @@
+function SquareGame.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+// compiling letStatement
+// compiling subroutine call
+push constant 0
+push constant 0
+push constant 30
+call Square.new 3
+pop this 0
+// compiling letStatement
+push constant 0
+pop this 1
+// compiling returnStatement
+push pointer 0
+return
+function SquareGame.dispose 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Square.dispose 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+// compiling returnStatement
+return
+function SquareGame.moveSquare 1
+push argument 0
+pop pointer 0
+// compiling ifStatement
+push this 1
+push constant 1
+eq
+if-goto LABEL1
+goto LABEL2
+label LABEL1
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Square.moveUp 1
+pop temp 0
+label LABEL2
+// compiling ifStatement
+push this 1
+push constant 2
+eq
+if-goto LABEL3
+goto LABEL4
+label LABEL3
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Square.moveDown 1
+pop temp 0
+label LABEL4
+// compiling ifStatement
+push this 1
+push constant 3
+eq
+if-goto LABEL5
+goto LABEL6
+label LABEL5
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Square.moveLeft 1
+pop temp 0
+label LABEL6
+// compiling ifStatement
+push this 1
+push constant 4
+eq
+if-goto LABEL7
+goto LABEL8
+label LABEL7
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Square.moveRight 1
+pop temp 0
+label LABEL8
+// compiling doStatement
+// compiling subroutine call
+push constant 5
+call Sys.wait 1
+pop temp 0
+// compiling returnStatement
+return
+function SquareGame.run 3
+push argument 0
+pop pointer 0
+// compiling letStatement
+push constant 0
+pop local 1
+// compiling whileStatement
+goto LABEL9
+label LABEL10
+// compiling whileStatement
+goto LABEL11
+label LABEL12
+// compiling letStatement
+// compiling subroutine call
+call Keyboard.keyPressed 0
+pop local 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call SquareGame.moveSquare 1
+pop temp 0
+label LABEL11
+push local 0
+push constant 0
+eq
+if-goto LABEL12
+// compiling ifStatement
+push local 0
+push constant 81
+eq
+if-goto LABEL13
+goto LABEL14
+label LABEL13
+// compiling letStatement
+push constant 1
+neg
+pop local 1
+label LABEL14
+// compiling ifStatement
+push local 0
+push constant 90
+eq
+if-goto LABEL15
+goto LABEL16
+label LABEL15
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Square.decSize 1
+pop temp 0
+label LABEL16
+// compiling ifStatement
+push local 0
+push constant 88
+eq
+if-goto LABEL17
+goto LABEL18
+label LABEL17
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Square.incSize 1
+pop temp 0
+label LABEL18
+// compiling ifStatement
+push local 0
+push constant 131
+eq
+if-goto LABEL19
+goto LABEL20
+label LABEL19
+// compiling letStatement
+push constant 1
+pop this 1
+label LABEL20
+// compiling ifStatement
+push local 0
+push constant 133
+eq
+if-goto LABEL21
+goto LABEL22
+label LABEL21
+// compiling letStatement
+push constant 2
+pop this 1
+label LABEL22
+// compiling ifStatement
+push local 0
+push constant 130
+eq
+if-goto LABEL23
+goto LABEL24
+label LABEL23
+// compiling letStatement
+push constant 3
+pop this 1
+label LABEL24
+// compiling ifStatement
+push local 0
+push constant 132
+eq
+if-goto LABEL25
+goto LABEL26
+label LABEL25
+// compiling letStatement
+push constant 4
+pop this 1
+label LABEL26
+// compiling whileStatement
+goto LABEL27
+label LABEL28
+// compiling letStatement
+// compiling subroutine call
+call Keyboard.keyPressed 0
+pop local 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call SquareGame.moveSquare 1
+pop temp 0
+label LABEL27
+push local 0
+push constant 0
+eq
+not
+if-goto LABEL28
+label LABEL9
+push local 1
+not
+if-goto LABEL10
+// compiling returnStatement
+return

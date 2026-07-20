@@ -1,0 +1,372 @@
+function Square.new 0
+push constant 3
+call Memory.alloc 1
+pop pointer 0
+// compiling letStatement
+push argument 0
+pop this 0
+// compiling letStatement
+push argument 1
+pop this 1
+// compiling letStatement
+push argument 2
+pop this 2
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Square.draw 1
+pop temp 0
+// compiling returnStatement
+push pointer 0
+return
+function Square.dispose 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+// compiling returnStatement
+return
+function Square.draw 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling returnStatement
+return
+function Square.erase 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling returnStatement
+return
+function Square.incSize 1
+push argument 0
+pop pointer 0
+// compiling ifStatement
+push this 1
+push this 2
+add
+push constant 254
+lt
+push this 0
+push this 2
+add
+push constant 510
+lt
+and
+if-goto LABEL1
+goto LABEL2
+label LABEL1
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Square.erase 1
+pop temp 0
+// compiling letStatement
+push this 2
+push constant 2
+add
+pop this 2
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Square.draw 1
+pop temp 0
+label LABEL2
+// compiling returnStatement
+return
+function Square.decSize 1
+push argument 0
+pop pointer 0
+// compiling ifStatement
+push this 2
+push constant 2
+gt
+if-goto LABEL3
+goto LABEL4
+label LABEL3
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Square.erase 1
+pop temp 0
+// compiling letStatement
+push this 2
+push constant 2
+sub
+pop this 2
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Square.draw 1
+pop temp 0
+label LABEL4
+// compiling returnStatement
+return
+function Square.moveUp 1
+push argument 0
+pop pointer 0
+// compiling ifStatement
+push this 1
+push constant 1
+gt
+if-goto LABEL5
+goto LABEL6
+label LABEL5
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 2
+add
+push constant 1
+sub
+push this 0
+push this 2
+add
+push this 1
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling letStatement
+push this 1
+push constant 2
+sub
+pop this 1
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push constant 1
+add
+call Screen.drawRectangle 4
+pop temp 0
+label LABEL6
+// compiling returnStatement
+return
+function Square.moveDown 1
+push argument 0
+pop pointer 0
+// compiling ifStatement
+push this 1
+push this 2
+add
+push constant 254
+lt
+if-goto LABEL7
+goto LABEL8
+label LABEL7
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push constant 1
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling letStatement
+push this 1
+push constant 2
+add
+pop this 1
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 2
+add
+push constant 1
+sub
+push this 0
+push this 2
+add
+push this 1
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+label LABEL8
+// compiling returnStatement
+return
+function Square.moveLeft 1
+push argument 0
+pop pointer 0
+// compiling ifStatement
+push this 0
+push constant 1
+gt
+if-goto LABEL9
+goto LABEL10
+label LABEL9
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 2
+add
+push constant 1
+sub
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling letStatement
+push this 0
+push constant 2
+sub
+pop this 0
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push constant 1
+add
+push this 1
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+label LABEL10
+// compiling returnStatement
+return
+function Square.moveRight 1
+push argument 0
+pop pointer 0
+// compiling ifStatement
+push this 0
+push this 2
+add
+push constant 510
+lt
+if-goto LABEL11
+goto LABEL12
+label LABEL11
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push constant 1
+add
+push this 1
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling letStatement
+push this 0
+push constant 2
+add
+pop this 0
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 2
+add
+push constant 1
+sub
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+label LABEL12
+// compiling returnStatement
+return

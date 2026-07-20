@@ -1,0 +1,17 @@
+function Main.main 1
+// compiling letStatement
+// compiling subroutine call
+call SquareGame.new 0
+pop local 0
+// compiling doStatement
+// compiling subroutine call
+push local 0
+call SquareGame.run 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push local 0
+call SquareGame.dispose 1
+pop temp 0
+// compiling returnStatement
+return
