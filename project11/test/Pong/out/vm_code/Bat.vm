@@ -1,0 +1,256 @@
+function Bat.new 0
+push constant 5
+call Memory.alloc 1
+pop pointer 0
+// compiling letStatement
+push argument 0
+pop this 0
+// compiling letStatement
+push argument 1
+pop this 1
+// compiling letStatement
+push argument 2
+pop this 2
+// compiling letStatement
+push argument 3
+pop this 3
+// compiling letStatement
+push constant 2
+pop this 4
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Bat.show 1
+pop temp 0
+// compiling returnStatement
+push pointer 0
+return
+function Bat.dispose 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+// compiling returnStatement
+return
+function Bat.show 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Bat.draw 1
+pop temp 0
+// compiling returnStatement
+return
+function Bat.hide 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Bat.draw 1
+pop temp 0
+// compiling returnStatement
+return
+function Bat.draw 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push this 3
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling returnStatement
+return
+function Bat.setDirection 1
+push argument 0
+pop pointer 0
+// compiling letStatement
+push argument 1
+pop this 4
+// compiling returnStatement
+return
+function Bat.getLeft 1
+push argument 0
+pop pointer 0
+// compiling returnStatement
+push this 0
+return
+function Bat.getRight 1
+push argument 0
+pop pointer 0
+// compiling returnStatement
+push this 0
+push this 2
+add
+return
+function Bat.setWidth 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Bat.hide 1
+pop temp 0
+// compiling letStatement
+push argument 1
+pop this 2
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Bat.show 1
+pop temp 0
+// compiling returnStatement
+return
+function Bat.move 1
+push argument 0
+pop pointer 0
+// compiling ifStatement
+push this 4
+push constant 1
+eq
+if-goto LABEL1
+// compiling letStatement
+push this 0
+push constant 4
+add
+pop this 0
+// compiling ifStatement
+push this 0
+push this 2
+add
+push constant 511
+gt
+if-goto LABEL3
+goto LABEL4
+label LABEL3
+// compiling letStatement
+push constant 511
+push this 2
+sub
+pop this 0
+label LABEL4
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push constant 4
+sub
+push this 1
+push this 0
+push constant 1
+sub
+push this 1
+push this 3
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 2
+add
+push constant 3
+sub
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push this 3
+add
+call Screen.drawRectangle 4
+pop temp 0
+goto LABEL2
+label LABEL1
+// compiling letStatement
+push this 0
+push constant 4
+sub
+pop this 0
+// compiling ifStatement
+push this 0
+push constant 0
+lt
+if-goto LABEL5
+goto LABEL6
+label LABEL5
+// compiling letStatement
+push constant 0
+pop this 0
+label LABEL6
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 2
+add
+push constant 1
+add
+push this 1
+push this 0
+push this 2
+add
+push constant 4
+add
+push this 1
+push this 3
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push constant 3
+add
+push this 1
+push this 3
+add
+call Screen.drawRectangle 4
+pop temp 0
+label LABEL2
+// compiling returnStatement
+return

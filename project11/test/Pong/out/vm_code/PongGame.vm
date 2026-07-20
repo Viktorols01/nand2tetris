@@ -1,0 +1,400 @@
+function PongGame.new 0
+push constant 7
+call Memory.alloc 1
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+call Screen.clearScreen 0
+pop temp 0
+// compiling letStatement
+push constant 50
+pop this 6
+// compiling letStatement
+// compiling subroutine call
+push constant 230
+push constant 229
+push this 6
+push constant 7
+call Bat.new 4
+pop this 0
+// compiling letStatement
+// compiling subroutine call
+push constant 253
+push constant 222
+push constant 0
+push constant 511
+push constant 0
+push constant 229
+call Ball.new 6
+pop this 1
+// compiling doStatement
+// compiling subroutine call
+push this 1
+push constant 400
+push constant 0
+call Ball.setDestination 3
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+push constant 238
+push constant 511
+push constant 240
+call Screen.drawRectangle 4
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push constant 22
+push constant 0
+call Output.moveCursor 2
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push constant 8
+call String.new 1
+push constant 83
+call String.appendChar 2
+push constant 99
+call String.appendChar 2
+push constant 111
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 58
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 48
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+// compiling letStatement
+push constant 0
+pop this 3
+// compiling letStatement
+push constant 0
+pop this 4
+// compiling letStatement
+push constant 0
+pop this 2
+// compiling letStatement
+push constant 0
+pop this 5
+// compiling returnStatement
+push pointer 0
+return
+function PongGame.dispose 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Bat.dispose 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 1
+call Ball.dispose 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+// compiling returnStatement
+return
+function PongGame.newInstance 0
+// compiling letStatement
+// compiling subroutine call
+call PongGame.new 0
+pop static 0
+// compiling returnStatement
+return
+function PongGame.getInstance 0
+// compiling returnStatement
+push static 0
+return
+function PongGame.run 2
+push argument 0
+pop pointer 0
+// compiling whileStatement
+goto LABEL1
+label LABEL2
+// compiling whileStatement
+goto LABEL3
+label LABEL4
+// compiling letStatement
+// compiling subroutine call
+call Keyboard.keyPressed 0
+pop local 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Bat.move 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call PongGame.moveBall 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push constant 50
+call Sys.wait 1
+pop temp 0
+label LABEL3
+push local 0
+push constant 0
+eq
+push this 3
+not
+and
+if-goto LABEL4
+// compiling ifStatement
+push local 0
+push constant 130
+eq
+if-goto LABEL5
+// compiling ifStatement
+push local 0
+push constant 132
+eq
+if-goto LABEL7
+// compiling ifStatement
+push local 0
+push constant 140
+eq
+if-goto LABEL9
+goto LABEL10
+label LABEL9
+// compiling letStatement
+push constant 1
+neg
+pop this 3
+label LABEL10
+goto LABEL8
+label LABEL7
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push constant 2
+call Bat.setDirection 2
+pop temp 0
+label LABEL8
+goto LABEL6
+label LABEL5
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push constant 1
+call Bat.setDirection 2
+pop temp 0
+label LABEL6
+// compiling whileStatement
+goto LABEL11
+label LABEL12
+// compiling letStatement
+// compiling subroutine call
+call Keyboard.keyPressed 0
+pop local 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+call Bat.move 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call PongGame.moveBall 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push constant 50
+call Sys.wait 1
+pop temp 0
+label LABEL11
+push local 0
+push constant 0
+eq
+not
+push this 3
+not
+and
+if-goto LABEL12
+label LABEL1
+push this 3
+not
+if-goto LABEL2
+// compiling ifStatement
+push this 3
+if-goto LABEL13
+goto LABEL14
+label LABEL13
+// compiling doStatement
+// compiling subroutine call
+push constant 10
+push constant 27
+call Output.moveCursor 2
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push constant 9
+call String.new 1
+push constant 71
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 109
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 118
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+label LABEL14
+// compiling returnStatement
+return
+function PongGame.moveBall 6
+push argument 0
+pop pointer 0
+// compiling letStatement
+// compiling subroutine call
+push this 1
+call Ball.move 1
+pop this 2
+// compiling ifStatement
+push this 2
+push constant 0
+gt
+push this 2
+push this 5
+eq
+not
+and
+if-goto LABEL15
+goto LABEL16
+label LABEL15
+// compiling letStatement
+push this 2
+pop this 5
+// compiling letStatement
+push constant 0
+pop local 0
+// compiling letStatement
+// compiling subroutine call
+push this 0
+call Bat.getLeft 1
+pop local 1
+// compiling letStatement
+// compiling subroutine call
+push this 0
+call Bat.getRight 1
+pop local 2
+// compiling letStatement
+// compiling subroutine call
+push this 1
+call Ball.getLeft 1
+pop local 3
+// compiling letStatement
+// compiling subroutine call
+push this 1
+call Ball.getRight 1
+pop local 4
+// compiling ifStatement
+push this 2
+push constant 4
+eq
+if-goto LABEL17
+goto LABEL18
+label LABEL17
+// compiling letStatement
+push local 1
+push local 4
+gt
+push local 2
+push local 3
+lt
+or
+pop this 3
+// compiling ifStatement
+push this 3
+not
+if-goto LABEL19
+goto LABEL20
+label LABEL19
+// compiling ifStatement
+push local 4
+push local 1
+push constant 10
+add
+lt
+if-goto LABEL21
+// compiling ifStatement
+push local 3
+push local 2
+push constant 10
+sub
+gt
+if-goto LABEL23
+goto LABEL24
+label LABEL23
+// compiling letStatement
+push constant 1
+pop local 0
+label LABEL24
+goto LABEL22
+label LABEL21
+// compiling letStatement
+push constant 1
+neg
+pop local 0
+label LABEL22
+// compiling letStatement
+push this 6
+push constant 2
+sub
+pop this 6
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 6
+call Bat.setWidth 2
+pop temp 0
+// compiling letStatement
+push this 4
+push constant 1
+add
+pop this 4
+// compiling doStatement
+// compiling subroutine call
+push constant 22
+push constant 7
+call Output.moveCursor 2
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push this 4
+call Output.printInt 1
+pop temp 0
+label LABEL20
+label LABEL18
+// compiling doStatement
+// compiling subroutine call
+push this 1
+push local 0
+call Ball.bounce 2
+pop temp 0
+label LABEL16
+// compiling returnStatement
+return

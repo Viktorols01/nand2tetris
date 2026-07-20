@@ -1,0 +1,518 @@
+function Ball.new 0
+push constant 15
+call Memory.alloc 1
+pop pointer 0
+// compiling letStatement
+push argument 0
+pop this 0
+// compiling letStatement
+push argument 1
+pop this 1
+// compiling letStatement
+push argument 2
+pop this 10
+// compiling letStatement
+push argument 3
+push constant 6
+sub
+pop this 11
+// compiling letStatement
+push argument 4
+pop this 12
+// compiling letStatement
+push argument 5
+push constant 6
+sub
+pop this 13
+// compiling letStatement
+push constant 0
+pop this 14
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Ball.show 1
+pop temp 0
+// compiling returnStatement
+push pointer 0
+return
+function Ball.dispose 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+// compiling returnStatement
+return
+function Ball.show 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push constant 1
+neg
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Ball.draw 1
+pop temp 0
+// compiling returnStatement
+return
+function Ball.hide 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push constant 0
+call Screen.setColor 1
+pop temp 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Ball.draw 1
+pop temp 0
+// compiling returnStatement
+return
+function Ball.draw 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push this 0
+push this 1
+push this 0
+push constant 5
+add
+push this 1
+push constant 5
+add
+call Screen.drawRectangle 4
+pop temp 0
+// compiling returnStatement
+return
+function Ball.getLeft 1
+push argument 0
+pop pointer 0
+// compiling returnStatement
+push this 0
+return
+function Ball.getRight 1
+push argument 0
+pop pointer 0
+// compiling returnStatement
+push this 0
+push constant 5
+add
+return
+function Ball.setDestination 4
+push argument 0
+pop pointer 0
+// compiling letStatement
+push argument 1
+push this 0
+sub
+pop this 2
+// compiling letStatement
+push argument 2
+push this 1
+sub
+pop this 3
+// compiling letStatement
+// compiling subroutine call
+push this 2
+call Math.abs 1
+pop local 0
+// compiling letStatement
+// compiling subroutine call
+push this 3
+call Math.abs 1
+pop local 1
+// compiling letStatement
+push local 0
+push local 1
+lt
+pop this 7
+// compiling ifStatement
+push this 7
+if-goto LABEL1
+// compiling letStatement
+push this 0
+push argument 1
+lt
+pop this 8
+// compiling letStatement
+push this 1
+push argument 2
+lt
+pop this 9
+goto LABEL2
+label LABEL1
+// compiling letStatement
+push local 0
+pop local 2
+// compiling letStatement
+push local 1
+pop local 0
+// compiling letStatement
+push local 2
+pop local 1
+// compiling letStatement
+push this 1
+push argument 2
+lt
+pop this 8
+// compiling letStatement
+push this 0
+push argument 1
+lt
+pop this 9
+label LABEL2
+// compiling letStatement
+push constant 2
+push local 1
+call Math.multiply 2
+push local 0
+sub
+pop this 4
+// compiling letStatement
+push constant 2
+push local 1
+call Math.multiply 2
+pop this 5
+// compiling letStatement
+push constant 2
+push local 1
+push local 0
+sub
+call Math.multiply 2
+pop this 6
+// compiling returnStatement
+return
+function Ball.move 1
+push argument 0
+pop pointer 0
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Ball.hide 1
+pop temp 0
+// compiling ifStatement
+push this 4
+push constant 0
+lt
+if-goto LABEL3
+// compiling letStatement
+push this 4
+push this 6
+add
+pop this 4
+// compiling ifStatement
+push this 9
+if-goto LABEL5
+// compiling ifStatement
+push this 7
+if-goto LABEL7
+// compiling letStatement
+push this 1
+push constant 4
+sub
+pop this 1
+goto LABEL8
+label LABEL7
+// compiling letStatement
+push this 0
+push constant 4
+sub
+pop this 0
+label LABEL8
+goto LABEL6
+label LABEL5
+// compiling ifStatement
+push this 7
+if-goto LABEL9
+// compiling letStatement
+push this 1
+push constant 4
+add
+pop this 1
+goto LABEL10
+label LABEL9
+// compiling letStatement
+push this 0
+push constant 4
+add
+pop this 0
+label LABEL10
+label LABEL6
+goto LABEL4
+label LABEL3
+// compiling letStatement
+push this 4
+push this 5
+add
+pop this 4
+label LABEL4
+// compiling ifStatement
+push this 8
+if-goto LABEL11
+// compiling ifStatement
+push this 7
+if-goto LABEL13
+// compiling letStatement
+push this 0
+push constant 4
+sub
+pop this 0
+goto LABEL14
+label LABEL13
+// compiling letStatement
+push this 1
+push constant 4
+sub
+pop this 1
+label LABEL14
+goto LABEL12
+label LABEL11
+// compiling ifStatement
+push this 7
+if-goto LABEL15
+// compiling letStatement
+push this 0
+push constant 4
+add
+pop this 0
+goto LABEL16
+label LABEL15
+// compiling letStatement
+push this 1
+push constant 4
+add
+pop this 1
+label LABEL16
+label LABEL12
+// compiling ifStatement
+push this 0
+push this 10
+gt
+not
+if-goto LABEL17
+goto LABEL18
+label LABEL17
+// compiling letStatement
+push constant 1
+pop this 14
+// compiling letStatement
+push this 10
+pop this 0
+label LABEL18
+// compiling ifStatement
+push this 0
+push this 11
+lt
+not
+if-goto LABEL19
+goto LABEL20
+label LABEL19
+// compiling letStatement
+push constant 2
+pop this 14
+// compiling letStatement
+push this 11
+pop this 0
+label LABEL20
+// compiling ifStatement
+push this 1
+push this 12
+gt
+not
+if-goto LABEL21
+goto LABEL22
+label LABEL21
+// compiling letStatement
+push constant 3
+pop this 14
+// compiling letStatement
+push this 12
+pop this 1
+label LABEL22
+// compiling ifStatement
+push this 1
+push this 13
+lt
+not
+if-goto LABEL23
+goto LABEL24
+label LABEL23
+// compiling letStatement
+push constant 4
+pop this 14
+// compiling letStatement
+push this 13
+pop this 1
+label LABEL24
+// compiling doStatement
+// compiling subroutine call
+push pointer 0
+call Ball.show 1
+pop temp 0
+// compiling returnStatement
+push this 14
+return
+function Ball.bounce 6
+push argument 0
+pop pointer 0
+// compiling letStatement
+push this 2
+push constant 10
+call Math.divide 2
+pop local 2
+// compiling letStatement
+push this 3
+push constant 10
+call Math.divide 2
+pop local 3
+// compiling ifStatement
+push argument 1
+push constant 0
+eq
+if-goto LABEL25
+// compiling ifStatement
+push this 2
+push constant 0
+lt
+not
+push argument 1
+push constant 1
+eq
+and
+push this 2
+push constant 0
+lt
+push argument 1
+push constant 1
+neg
+eq
+and
+or
+if-goto LABEL27
+// compiling letStatement
+push constant 5
+pop local 4
+goto LABEL28
+label LABEL27
+// compiling letStatement
+push constant 20
+pop local 4
+label LABEL28
+goto LABEL26
+label LABEL25
+// compiling letStatement
+push constant 10
+pop local 4
+label LABEL26
+// compiling ifStatement
+push this 14
+push constant 1
+eq
+if-goto LABEL29
+// compiling ifStatement
+push this 14
+push constant 2
+eq
+if-goto LABEL31
+// compiling ifStatement
+push this 14
+push constant 3
+eq
+if-goto LABEL33
+// compiling letStatement
+push constant 0
+pop local 1
+// compiling letStatement
+push local 2
+push constant 25
+call Math.multiply 2
+push local 3
+call Math.divide 2
+pop local 0
+// compiling letStatement
+push this 0
+push local 0
+push local 4
+call Math.multiply 2
+add
+pop local 0
+goto LABEL34
+label LABEL33
+// compiling letStatement
+push constant 250
+pop local 1
+// compiling letStatement
+push local 2
+push constant 25
+neg
+call Math.multiply 2
+push local 3
+call Math.divide 2
+pop local 0
+// compiling letStatement
+push this 0
+push local 0
+push local 4
+call Math.multiply 2
+add
+pop local 0
+label LABEL34
+goto LABEL32
+label LABEL31
+// compiling letStatement
+push constant 0
+pop local 0
+// compiling letStatement
+push local 3
+push constant 50
+call Math.multiply 2
+push local 2
+call Math.divide 2
+pop local 1
+// compiling letStatement
+push this 1
+push local 1
+push local 4
+call Math.multiply 2
+add
+pop local 1
+label LABEL32
+goto LABEL30
+label LABEL29
+// compiling letStatement
+push constant 506
+pop local 0
+// compiling letStatement
+push local 3
+push constant 50
+neg
+call Math.multiply 2
+push local 2
+call Math.divide 2
+pop local 1
+// compiling letStatement
+push this 1
+push local 1
+push local 4
+call Math.multiply 2
+add
+pop local 1
+label LABEL30
+// compiling doStatement
+// compiling subroutine call
+push local 0
+push local 1
+push pointer 0
+call Ball.setDestination 3
+pop temp 0
+// compiling returnStatement
+return

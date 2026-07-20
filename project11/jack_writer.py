@@ -8,8 +8,9 @@ class JackWriter:
         self.subroutine_symbol_table = SymbolTable()
         self.class_symbol_table = SymbolTable()
         self.file = open(output_file_name, "w")
-        self.file_prefix = output_file_name.split("/")[-1].split(".")[0] # note: this should be the same as class prefix
-        self.non_method_map = {} # just to check if a function is a function and not a method
+        # note: this should be the same as class prefix
+        self.file_prefix = output_file_name.split("/")[-1].split(".")[0]
+        self.non_method_map = {}  # just to check if a function is a function and not a method
         self.label_n = 0
 
         def _write(*strings):
@@ -17,7 +18,7 @@ class JackWriter:
                 print(string)
                 self.file.write(f"{string}\n")
         self._write = _write
-    
+
     def _get_symbol(self, name):
         if self.subroutine_symbol_table.contains_symbol(name):
             return self.subroutine_symbol_table.get_symbol(name)
@@ -27,7 +28,7 @@ class JackWriter:
     def _get_segment(self, name):
         symbol = self._get_symbol(name)
         return symbol.get_segment()
-    
+
     def _is_in_symbol_table(self, name):
         return self._get_symbol(name) is not None
 
@@ -42,7 +43,7 @@ class JackWriter:
             name, subsubtree = element
             match name:
                 case "identifier":
-                    pass # should just be class name
+                    pass  # should just be class name
                 case "classVarDec":
                     self._compileClassVarDec(subsubtree)
                 case "subroutineDec":
@@ -67,13 +68,14 @@ class JackWriter:
         _, subroutine_type = tree[0]  # method, function or constructor
         _, return_type = tree[1]
         _, subroutine_name = tree[2]
-        _, parameter_list = tree[4]  
+        _, parameter_list = tree[4]
         _, subroutine_body = tree[6]
         function_label = f"{self.file_prefix}.{subroutine_name}"
         local_variable_count = self._countLocalVariables(subroutine_body)
         if subroutine_type == "method":
             local_variable_count += 1
-            self.subroutine_symbol_table.add_symbol("this", self.file_prefix, SymbolKind.ARG)
+            self.subroutine_symbol_table.add_symbol(
+                "this", self.file_prefix, SymbolKind.ARG)
         else:
             self.non_method_map[subroutine_name] = True
         self._write(f"function {function_label} {local_variable_count}")
@@ -155,16 +157,25 @@ class JackWriter:
                     raise "Unknown statement"
 
     def _compileLetStatement(self, tree):
-        if len(tree) == 5: 
-           _, identifier = tree[1] 
-           _, expression = tree[3] 
-           segment = self._get_segment(identifier)
-           self._compileExpression(expression)
-           self._write(f"pop {segment}")
+        if len(tree) == 5:
+            _, identifier = tree[1]
+            _, expression = tree[3]
+            segment = self._get_segment(identifier)
+            self._compileExpression(expression)
+            self._write(f"pop {segment}")
         else:
-            raise "Not implemented!"
-            # TODO: add support for arrays
-            pass
+            _, identifier = tree[1]
+            _, expression1 = tree[3]
+            _, expression2 = tree[6]
+            segment = self._get_segment(identifier) # arr
+            self._write(f"push {segment}")
+            self._compileExpression(expression1)
+            self._write("add")
+            self._compileExpression(expression2)
+            self._write("pop temp 2")
+            self._write("pop pointer 1") # set pointer 1 to arr + expression1
+            self._write("push temp 2")
+            self._write("pop that 0")
 
     def _compileIfStatement(self, tree):
         _, expression = tree[2]
@@ -204,7 +215,8 @@ class JackWriter:
         self._write("pop temp 0")  # remove pushed value
 
     def _compileReturnStatement(self, tree):
-        if len(tree) == 2: # just a return
+        if len(tree) == 2:  # just a return
+            # TODO: the book says it's a convention to always push some value to the stack. Fix this if I encounter issues.
             self._write("return")
         else:
             _, expression = tree[1]
@@ -245,7 +257,11 @@ class JackWriter:
             case "integerConstant":
                 self._write(f"push constant {first_value}")
             case "stringConstant":
-                raise "Hmmmm..."
+                self._write(f"push constant {len(first_value)}")
+                self._write(f"call String.new 1")
+                for char in first_value:
+                    self._write(f"push constant {ord(char)}")
+                    self._write(f"call String.appendChar 2")
             case "keyword":
                 match first_value:
                     case "true":
@@ -279,18 +295,23 @@ class JackWriter:
         # varName
         if len(tree) == 1:
             is_not_method = not self._is_in_symbol_table("this")
-            if first_identifier == "this" and is_not_method: # for "return this" in constructors
+            if first_identifier == "this" and is_not_method:  # for "return this" in constructors
                 self._write(f"push pointer 0")
                 return
 
             segment = self._get_segment(first_identifier)
             self._write(f"push {segment}")
             return
-        
+
         first_symbol = tree[1][1]
         if first_symbol == '[':
-            raise "Not implemented" # TODO: varName[expression]
-            return
+            _, expression = tree[2]
+            segment = self._get_segment(first_identifier)
+            self._write(f"push {segment}")
+            self._compileExpression(expression)
+            self._write("add")
+            self._write("pop pointer 1")
+            self._write("push that 0")
         # subroutineCall
         self._compileSubroutineCallTerm(tree)
 
@@ -303,10 +324,12 @@ class JackWriter:
             expression_list = tree[2][1]
             expression_count = self._compileExpressionList(expression_list)
             if first_identifier in self.non_method_map:
-                self._write(f"call {self.file_prefix}.{first_identifier} {expression_count}")
+                self._write(
+                    f"call {self.file_prefix}.{first_identifier} {expression_count}")
             else:
                 self._write(f"push pointer 0")
-                self._write(f"call {self.file_prefix}.{first_identifier} {expression_count + 1}")
+                self._write(
+                    f"call {self.file_prefix}.{first_identifier} {expression_count + 1}")
         # (className|varName).subroutineName(expressionList)
         if first_symbol == '.':
             second_identifier = tree[2][1]
@@ -319,12 +342,13 @@ class JackWriter:
                 class_name_of_var = symbol.symbol_type
                 self._write(f"push {symbol.get_segment()}")
                 expression_count = self._compileExpressionList(expression_list)
-                self._write(f"call {class_name_of_var}.{second_identifier} {expression_count + 1}")
+                self._write(
+                    f"call {class_name_of_var}.{second_identifier} {expression_count + 1}")
             else:
                 # calling a static function of another class
                 expression_count = self._compileExpressionList(expression_list)
-                self._write(f"call {first_identifier}.{second_identifier} {expression_count}")
-
+                self._write(
+                    f"call {first_identifier}.{second_identifier} {expression_count}")
 
     def _compileExpressionList(self, tree):
         # put a looot of values on the stack
